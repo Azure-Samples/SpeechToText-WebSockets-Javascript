@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech Sample</title>
+    <meta charset="utf-8" />
+</head>
+<body style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px;">
+    <table width="100%">
+        <tr>
+            <td></td>
+            <td>
+                <h1 style="font-weight:500;">Speech Recognition</h1>
+                <h2 style="font-weight:500;">Microsoft Cognitive Services</h2>
+            </td>
+        </tr>
+        <tr>
+            <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
+            <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
+        </tr>
+        <tr>
+            <td align="right">Laguage:</td>
+            <td align="left">
+                <select id="languageOptions">
+                    <option value="zh-CN">Chinese - CN</option>
+                    <option value="en-GB">English - GB</option>
+                    <option value="en-US" selected="selected">English - US</option>
+                    <option value="fr-FR">French - FR</option>
+                    <option value="de-DE">German - DE</option>
+                    <option value="it-IT">Italian - IT</option>
+                    <option value="es-ES">Spanish - ES</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">Format:</td>
+            <td align="left">
+                <select id="formatOptions">
+                    <option value="Simple" selected="selected">Simple Result</option>
+                    <option value="Detailed">Detailed Result</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><button id="startBtn">Start</button><button id="stopBtn" disabled="disabled">Stop</button></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Current hypothesis: <span id="hypothesisDiv"></span></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <textarea id="phraseDiv" style="width:500px;height:200px"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Status: <span id="statusDiv"></span></td>
+        </tr>
+    </table>
+
+    <!-- SDK REFERENCE -->
+    <script src="..\..\distrib\speech.browser.sdk.js"></script>
+
+    <!-- SDK USAGE -->
+    <script>
+        // Creating a shorter alias for Speech
+        let SR = Speech;
+
+        // Setup the recongizer before
+        function RecognizerSetup(recognitionMode, language, format, subscriptionKey) {
+            let recognizerConfig = new SR.RecognizerConfig(
+                new SR.SpeechConfig(
+                    new SR.Context(
+                        new SR.OS(navigator.userAgent, "Browser", null),
+                        new SR.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
+                recognitionMode, // SR.RecognitionMode.Interactive  (Options - Interactive/Conversation/Dictation>)
+                language, // Supported laguages are specific to each recognition mode. Refer to docs.
+                format); // SR.SpeechResultFormat.Simple (Options - Simple/Detailed)
+
+            // Alternatively use SR.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
+            let authentication = new SR.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
+
+            return SR.Browser.Recognizer.Create(recognizerConfig, authentication);
+        }
+
+        function RecognizerStart(recognizer) {
+            recognizer.Recognize((event) => {
+                /*
+                 Alternative syntax for typescript devs.
+                 if (event instanceof SR.RecognitionTriggeredEvent)
+                */
+                switch (event.Name) {
+                    case "RecognitionTriggeredEvent" :
+                        UpdateStatus("Initializing");
+                        break;
+                    case "ListeningStartedEvent" :
+                        UpdateStatus("Listening");
+                        break;
+                    case "RecognitionStartedEvent" :
+                        UpdateStatus("Listening_Recognizing");
+                        break;
+                    case "SpeechStartDetectedEvent" :
+                        UpdateStatus("Listening_DetectedSpeech_Recognizing");
+                        console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        break;
+                    case "SpeechHypothesisEvent" :
+                        UpdateRecognizedHypothesis(event.Result.Text);
+                        console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        break;
+                    case "SpeechEndDetectedEvent" :
+                        OnSpeechEndDetected();
+                        UpdateStatus("Processing_Adding_Final_Touches");
+                        console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        break;
+                    case "SpeechSimplePhraseEvent" :
+                        UpdateRecognizedPhrase(JSON.stringify(event.Result, null, 3));
+                        break;
+                    case "SpeechDetailedPhraseEvent" :
+                        UpdateRecognizedPhrase(JSON.stringify(event.Result, null, 3));
+                        break;
+                    case "RecognitionEndedEvent" :
+                        OnComplete();
+                        UpdateStatus("Idle");
+                        console.log(JSON.stringify(event)); // Debug information
+                        break;
+                }
+            })
+            .On(() => {
+                // The request succeeded. Nothing to do here.
+            },
+            (error) => {
+                console.error(error);
+            });
+        }
+
+        function RecognizerStop(recognizer) {
+            // recognizer.AudioSource.Detach(audioNodeId) can be also used here. (audioNodeId is part of ListeningStartedEvent)
+            recognizer.AudioSource.TurnOff();
+        }
+    </script>
+
+    <!-- Browser Hooks -->
+    <script>
+        let startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv, key, languageOptions, formatOptions;
+        let recognizer;
+        let previousSubscriptionKey;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            createBtn = document.getElementById("createBtn");
+            startBtn = document.getElementById("startBtn");
+            stopBtn = document.getElementById("stopBtn");
+            phraseDiv = document.getElementById("phraseDiv");
+            hypothesisDiv = document.getElementById("hypothesisDiv");
+            statusDiv = document.getElementById("statusDiv");
+            key = document.getElementById("key");
+            languageOptions = document.getElementById("languageOptions");
+            languageOptions.addEventListener("change", function () {
+                Setup();
+            });
+            formatOptions = document.getElementById("formatOptions");
+            formatOptions.addEventListener("change", function () {
+                Setup();
+            });
+            startBtn.addEventListener("click", function () {
+                if (!recognizer || previousSubscriptionKey != key.value) {
+                    previousSubscriptionKey = key.value;
+                    Setup();
+                }
+
+                hypothesisDiv.innerHTML = "";
+                phraseDiv.innerHTML = "";
+                RecognizerStart(recognizer);
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            });
+            stopBtn.addEventListener("click", function () {
+                RecognizerStop();
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            });
+        });
+
+        function Setup() {
+            recognizer = RecognizerSetup(SR.RecognitionMode.Interactive, languageOptions.value, SR.SpeechResultFormat[formatOptions.value], key.value);
+        }
+
+        function UpdateStatus(status) {
+            statusDiv.innerHTML = status;
+        }
+
+        function UpdateRecognizedHypothesis(text) {
+            hypothesisDiv.innerHTML = text;
+        }
+
+        function OnSpeechEndDetected() {
+            stopBtn.disabled = true;
+        }
+
+        function UpdateRecognizedPhrase(json) {
+             phraseDiv.innerHTML = json;
+        }
+
+        function OnComplete() {
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>
