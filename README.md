@@ -14,7 +14,7 @@ function RecognizerSetup(recognitionMode, language, format, subscriptionKey) {
             new SR.Context(
                 new SR.OS(navigator.userAgent, "Browser", null),
                 new SR.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
-        recognitionMode, // SR.RecognitionMode.Interactive  (Options - Interactive/Conversation/Dictation>)
+        recognitionMode, // SR.RecognitionMode.Interactive  (Options - Interactive/Conversation/Dictation)
         language, // Supported laguages are specific to each recognition mode. Refer to docs.
         format); // SR.SpeechResultFormat.Simple (Options - Simple/Detailed)
 
