@@ -24,9 +24,11 @@ namespace Common.Browser {
                         console.info(log);
                         break;
                     case EventType.Warning:
+                        // tslint:disable-next-line:no-console
                         console.warn(log);
                         break;
                     case EventType.Error:
+                        // tslint:disable-next-line:no-console
                         console.error(log);
                         break;
                     default:
