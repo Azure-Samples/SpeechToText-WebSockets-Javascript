@@ -1,44 +1,41 @@
-/// <reference path="../common/Error.ts" />
-/// <reference path="../common/IKeyValueStorage.ts" />
+import { ArgumentNullError, IKeyValueStorage } from "../common/Exports";
 
-namespace Common.Browser {
-    export class LocalStorage implements IKeyValueStorage {
+export class LocalStorage implements IKeyValueStorage {
 
-        public Get = (key: string): string => {
-            if (!key) {
-                throw new ArgumentNullError("key");
-            }
-
-            return localStorage.getItem(key);
+    public Get = (key: string): string => {
+        if (!key) {
+            throw new ArgumentNullError("key");
         }
 
-        public GetOrAdd = (key: string, valueToAdd: string): string => {
-            if (!key) {
-                throw new ArgumentNullError("key");
-            }
+        return localStorage.getItem(key);
+    }
 
-            const value = localStorage.getItem(key);
-            if (value === null || value === undefined) {
-                localStorage.setItem(key, valueToAdd);
-            }
-
-            return localStorage.getItem(key);
+    public GetOrAdd = (key: string, valueToAdd: string): string => {
+        if (!key) {
+            throw new ArgumentNullError("key");
         }
 
-        public Set = (key: string, value: string): void => {
-            if (!key) {
-                throw new ArgumentNullError("key");
-            }
-
-            localStorage.setItem(key, value);
+        const value = localStorage.getItem(key);
+        if (value === null || value === undefined) {
+            localStorage.setItem(key, valueToAdd);
         }
 
-        public Remove = (key: string): void => {
-            if (!key) {
-                throw new ArgumentNullError("key");
-            }
+        return localStorage.getItem(key);
+    }
 
-            localStorage.removeItem(key);
+    public Set = (key: string, value: string): void => {
+        if (!key) {
+            throw new ArgumentNullError("key");
         }
+
+        localStorage.setItem(key, value);
+    }
+
+    public Remove = (key: string): void => {
+        if (!key) {
+            throw new ArgumentNullError("key");
+        }
+
+        localStorage.removeItem(key);
     }
 }

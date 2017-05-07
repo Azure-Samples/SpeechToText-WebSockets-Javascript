@@ -1,244 +1,243 @@
-/// <reference path="../../common/Events.ts" />
-/// <reference path="../../common/PlatformEvent.ts" />
-/// <reference path="SpeechResults.ts"/>
+import { EventType, PlatformEvent } from "../../common/Exports";
+import {
+    IDetailedSpeechPhrase,
+    ISimpleSpeechPhrase,
+    ISpeechEndDetectedResult,
+    ISpeechHypothesisResult,
+    ISpeechStartDetectedResult,
+} from "./SpeechResults";
 
-namespace Speech {
+export class SpeechRecognitionEvent extends PlatformEvent {
+    private eventName: string;
+    private requestId: string;
 
-    import PlatformEvent = Common.PlatformEvent;
-    import EventType = Common.EventType;
+    constructor(eventName: string, requestId: string, eventType: EventType = EventType.Info) {
+        super(eventType);
 
-    export class SpeechRecognitionEvent extends PlatformEvent {
-        private eventName: string;
-        private requestId: string;
-
-        constructor(eventName: string, requestId: string, eventType: EventType = EventType.Info) {
-            super(eventType);
-
-            this.eventName = eventName;
-            this.requestId = requestId;
-        }
-
-        public get Name(): string {
-            return this.eventName;
-        }
-
-        public get RequestId(): string {
-            return this.requestId;
-        }
+        this.eventName = eventName;
+        this.requestId = requestId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class SpeechRecognitionResultEvent<TResult> extends SpeechRecognitionEvent {
-        private result: TResult;
-
-        constructor(eventName: string, requestId: string, result: TResult) {
-            super(eventName, requestId);
-            this.result = result;
-        }
-
-        public get Result(): TResult {
-            return this.result;
-        }
+    public get Name(): string {
+        return this.eventName;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class RecognitionTriggeredEvent extends SpeechRecognitionEvent {
-        private audioSourceId: string;
-        private audioNodeId: string;
+    public get RequestId(): string {
+        return this.requestId;
+    }
+}
 
-        constructor(requestId: string, audioSourceId: string, audioNodeId: string) {
-            super("RecognitionTriggeredEvent", requestId);
+// tslint:disable-next-line:max-classes-per-file
+export class SpeechRecognitionResultEvent<TResult> extends SpeechRecognitionEvent {
+    private result: TResult;
 
-            this.audioSourceId = audioSourceId;
-            this.audioNodeId = audioNodeId;
-        }
-
-        public get AudioSourceId(): string {
-            return this.audioSourceId;
-        }
-
-        public get AudioNodeId(): string {
-            return this.audioNodeId;
-        }
+    constructor(eventName: string, requestId: string, result: TResult) {
+        super(eventName, requestId);
+        this.result = result;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class ListeningStartedEvent extends SpeechRecognitionEvent {
-        private audioSourceId: string;
-        private audioNodeId: string;
+    public get Result(): TResult {
+        return this.result;
+    }
+}
 
-        constructor(requestId: string, audioSourceId: string, audioNodeId: string) {
-            super("ListeningStartedEvent", requestId);
-            this.audioSourceId = audioSourceId;
-            this.audioNodeId = audioNodeId;
-        }
+// tslint:disable-next-line:max-classes-per-file
+export class RecognitionTriggeredEvent extends SpeechRecognitionEvent {
+    private audioSourceId: string;
+    private audioNodeId: string;
 
-        public get AudioSourceId(): string {
-            return this.audioSourceId;
-        }
+    constructor(requestId: string, audioSourceId: string, audioNodeId: string) {
+        super("RecognitionTriggeredEvent", requestId);
 
-        public get AudioNodeId(): string {
-            return this.audioNodeId;
-        }
+        this.audioSourceId = audioSourceId;
+        this.audioNodeId = audioNodeId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class ConnectingToServiceEvent extends SpeechRecognitionEvent {
-        private authFetchEventid: string;
-        private connectionId: string;
-
-        constructor(requestId: string, authFetchEventid: string, connectionId: string) {
-            super("ConnectingToServiceEvent", requestId);
-            this.authFetchEventid = authFetchEventid;
-            this.connectionId = connectionId;
-        }
-
-        public get AuthFetchEventid(): string {
-            return this.authFetchEventid;
-        }
-
-        public get ConnectionId(): string {
-            return this.connectionId;
-        }
+    public get AudioSourceId(): string {
+        return this.audioSourceId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class RecognitionStartedEvent extends SpeechRecognitionEvent {
-        private audioSourceId: string;
-        private audioNodeId: string;
-        private authFetchEventId: string;
-        private connectionId: string;
+    public get AudioNodeId(): string {
+        return this.audioNodeId;
+    }
+}
 
-        constructor(requestId: string, audioSourceId: string, audioNodeId: string, authFetchEventId: string, connectionId: string) {
-            super("RecognitionStartedEvent", requestId);
+// tslint:disable-next-line:max-classes-per-file
+export class ListeningStartedEvent extends SpeechRecognitionEvent {
+    private audioSourceId: string;
+    private audioNodeId: string;
 
-            this.audioSourceId = audioSourceId;
-            this.audioNodeId = audioNodeId;
-            this.authFetchEventId = authFetchEventId;
-            this.connectionId = connectionId;
-        }
-
-        public get AudioSourceId(): string {
-            return this.audioSourceId;
-        }
-
-        public get AudioNodeId(): string {
-            return this.audioNodeId;
-        }
-
-        public get AuthFetchEventId(): string {
-            return this.authFetchEventId;
-        }
-
-        public get ConnectionId(): string {
-            return this.connectionId;
-        }
+    constructor(requestId: string, audioSourceId: string, audioNodeId: string) {
+        super("ListeningStartedEvent", requestId);
+        this.audioSourceId = audioSourceId;
+        this.audioNodeId = audioNodeId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class SpeechStartDetectedEvent extends SpeechRecognitionResultEvent<ISpeechStartDetectedResult> {
-        constructor(requestId: string, result: ISpeechStartDetectedResult) {
-            super("SpeechStartDetectedEvent", requestId, result);
-        }
+    public get AudioSourceId(): string {
+        return this.audioSourceId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class SpeechHypothesisEvent extends SpeechRecognitionResultEvent<ISpeechHypothesisResult> {
-        constructor(requestId: string, result: ISpeechHypothesisResult) {
-            super("SpeechHypothesisEvent", requestId, result);
-        }
+    public get AudioNodeId(): string {
+        return this.audioNodeId;
+    }
+}
+
+// tslint:disable-next-line:max-classes-per-file
+export class ConnectingToServiceEvent extends SpeechRecognitionEvent {
+    private authFetchEventid: string;
+    private connectionId: string;
+
+    constructor(requestId: string, authFetchEventid: string, connectionId: string) {
+        super("ConnectingToServiceEvent", requestId);
+        this.authFetchEventid = authFetchEventid;
+        this.connectionId = connectionId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class SpeechEndDetectedEvent extends SpeechRecognitionResultEvent<ISpeechEndDetectedResult> {
-        constructor(requestId: string, result: ISpeechEndDetectedResult) {
-            super("SpeechEndDetectedEvent", requestId, result);
-        }
+    public get AuthFetchEventid(): string {
+        return this.authFetchEventid;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class SpeechSimplePhraseEvent extends SpeechRecognitionResultEvent<ISimpleSpeechPhrase> {
-        constructor(requestId: string, result: ISimpleSpeechPhrase) {
-            super("SpeechSimplePhraseEvent", requestId, result);
-        }
+    public get ConnectionId(): string {
+        return this.connectionId;
+    }
+}
+
+// tslint:disable-next-line:max-classes-per-file
+export class RecognitionStartedEvent extends SpeechRecognitionEvent {
+    private audioSourceId: string;
+    private audioNodeId: string;
+    private authFetchEventId: string;
+    private connectionId: string;
+
+    constructor(requestId: string, audioSourceId: string, audioNodeId: string, authFetchEventId: string, connectionId: string) {
+        super("RecognitionStartedEvent", requestId);
+
+        this.audioSourceId = audioSourceId;
+        this.audioNodeId = audioNodeId;
+        this.authFetchEventId = authFetchEventId;
+        this.connectionId = connectionId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class SpeechDetailedPhraseEvent extends SpeechRecognitionResultEvent<IDetailedSpeechPhrase> {
-        constructor(requestId: string, result: IDetailedSpeechPhrase) {
-            super("SpeechDetailedPhraseEvent", requestId, result);
-        }
+    public get AudioSourceId(): string {
+        return this.audioSourceId;
     }
 
-    export enum RecognitionCompletionStatus {
-        Success,
-        AudioSourceError,
-        AudioSourceTimeout,
-        AuthTokenFetchError,
-        AuthTokenFetchTimeout,
-        UnAuthorized,
-        ConnectTimeout,
-        ConnectError,
-        ClientRecognitionActivityTimeout,
-        UnknownError,
+    public get AudioNodeId(): string {
+        return this.audioNodeId;
     }
 
-    // tslint:disable-next-line:max-classes-per-file
-    export class RecognitionEndedEvent  extends SpeechRecognitionEvent {
-        private audioSourceId: string;
-        private audioNodeId: string;
-        private authFetchEventId: string;
-        private connectionId: string;
-        private serviceTag: string;
-        private status: RecognitionCompletionStatus;
-        private error: string;
+    public get AuthFetchEventId(): string {
+        return this.authFetchEventId;
+    }
 
-        constructor(
-            requestId: string,
-            audioSourceId: string,
-            audioNodeId: string,
-            authFetchEventId: string,
-            connectionId: string,
-            serviceTag: string,
-            status: RecognitionCompletionStatus,
-            error: string) {
+    public get ConnectionId(): string {
+        return this.connectionId;
+    }
+}
 
-            super("RecognitionEndedEvent", requestId, status === RecognitionCompletionStatus.Success ? EventType.Info : EventType.Error);
+// tslint:disable-next-line:max-classes-per-file
+export class SpeechStartDetectedEvent extends SpeechRecognitionResultEvent<ISpeechStartDetectedResult> {
+    constructor(requestId: string, result: ISpeechStartDetectedResult) {
+        super("SpeechStartDetectedEvent", requestId, result);
+    }
+}
 
-            this.audioSourceId = audioSourceId;
-            this.audioNodeId = audioNodeId;
-            this.connectionId = connectionId;
-            this.authFetchEventId = authFetchEventId;
+// tslint:disable-next-line:max-classes-per-file
+export class SpeechHypothesisEvent extends SpeechRecognitionResultEvent<ISpeechHypothesisResult> {
+    constructor(requestId: string, result: ISpeechHypothesisResult) {
+        super("SpeechHypothesisEvent", requestId, result);
+    }
+}
 
-            this.serviceTag = serviceTag;
-        }
+// tslint:disable-next-line:max-classes-per-file
+export class SpeechEndDetectedEvent extends SpeechRecognitionResultEvent<ISpeechEndDetectedResult> {
+    constructor(requestId: string, result: ISpeechEndDetectedResult) {
+        super("SpeechEndDetectedEvent", requestId, result);
+    }
+}
 
-        public get AudioSourceId(): string {
-            return this.audioSourceId;
-        }
+// tslint:disable-next-line:max-classes-per-file
+export class SpeechSimplePhraseEvent extends SpeechRecognitionResultEvent<ISimpleSpeechPhrase> {
+    constructor(requestId: string, result: ISimpleSpeechPhrase) {
+        super("SpeechSimplePhraseEvent", requestId, result);
+    }
+}
 
-        public get AudioNodeId(): string {
-            return this.audioNodeId;
-        }
+// tslint:disable-next-line:max-classes-per-file
+export class SpeechDetailedPhraseEvent extends SpeechRecognitionResultEvent<IDetailedSpeechPhrase> {
+    constructor(requestId: string, result: IDetailedSpeechPhrase) {
+        super("SpeechDetailedPhraseEvent", requestId, result);
+    }
+}
 
-        public get AuthFetchEventId(): string {
-            return this.authFetchEventId;
-        }
+export enum RecognitionCompletionStatus {
+    Success,
+    AudioSourceError,
+    AudioSourceTimeout,
+    AuthTokenFetchError,
+    AuthTokenFetchTimeout,
+    UnAuthorized,
+    ConnectTimeout,
+    ConnectError,
+    ClientRecognitionActivityTimeout,
+    UnknownError,
+}
 
-        public get ConnectionId(): string {
-            return this.connectionId;
-        }
+// tslint:disable-next-line:max-classes-per-file
+export class RecognitionEndedEvent extends SpeechRecognitionEvent {
+    private audioSourceId: string;
+    private audioNodeId: string;
+    private authFetchEventId: string;
+    private connectionId: string;
+    private serviceTag: string;
+    private status: RecognitionCompletionStatus;
+    private error: string;
 
-        public get ServiceTag(): string {
-            return this.serviceTag;
-        }
+    constructor(
+        requestId: string,
+        audioSourceId: string,
+        audioNodeId: string,
+        authFetchEventId: string,
+        connectionId: string,
+        serviceTag: string,
+        status: RecognitionCompletionStatus,
+        error: string) {
 
-        public get Status(): RecognitionCompletionStatus {
-            return this.status;
-        }
+        super("RecognitionEndedEvent", requestId, status === RecognitionCompletionStatus.Success ? EventType.Info : EventType.Error);
 
-        public get Error(): string {
-            return this.error;
-        }
+        this.audioSourceId = audioSourceId;
+        this.audioNodeId = audioNodeId;
+        this.connectionId = connectionId;
+        this.authFetchEventId = authFetchEventId;
+
+        this.serviceTag = serviceTag;
+    }
+
+    public get AudioSourceId(): string {
+        return this.audioSourceId;
+    }
+
+    public get AudioNodeId(): string {
+        return this.audioNodeId;
+    }
+
+    public get AuthFetchEventId(): string {
+        return this.authFetchEventId;
+    }
+
+    public get ConnectionId(): string {
+        return this.connectionId;
+    }
+
+    public get ServiceTag(): string {
+        return this.serviceTag;
+    }
+
+    public get Status(): RecognitionCompletionStatus {
+        return this.status;
+    }
+
+    public get Error(): string {
+        return this.error;
     }
 }

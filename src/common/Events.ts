@@ -1,22 +1,20 @@
-///<reference path="Error.ts"/>
-///<reference path="IEventSource.ts"/>
-///<reference path="EventSource.ts"/>
-///<reference path="PlatformEvent.ts"/>
+import { ArgumentNullError } from "./Error";
+import { EventSource } from "./EventSource";
+import { IEventSource } from "./IEventSource";
+import { PlatformEvent } from "./PlatformEvent";
 
-namespace Common {
-    export class Events {
-        private static instance: IEventSource<PlatformEvent> = new EventSource<PlatformEvent>();
+export class Events {
+    private static instance: IEventSource<PlatformEvent> = new EventSource<PlatformEvent>();
 
-        public static SetEventSource = (eventSource: IEventSource<PlatformEvent>): void => {
-            if (!eventSource) {
-                throw new ArgumentNullError("eventSource");
-            }
-
-            Events.instance = eventSource;
+    public static SetEventSource = (eventSource: IEventSource<PlatformEvent>): void => {
+        if (!eventSource) {
+            throw new ArgumentNullError("eventSource");
         }
 
-        public static get Instance(): IEventSource<PlatformEvent> {
-            return Events.instance;
-        }
+        Events.instance = eventSource;
+    }
+
+    public static get Instance(): IEventSource<PlatformEvent> {
+        return Events.instance;
     }
 }

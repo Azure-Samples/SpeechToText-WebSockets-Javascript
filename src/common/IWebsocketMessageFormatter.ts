@@ -1,13 +1,8 @@
-/// <reference path="Error.ts" />
-/// <reference path="Promise.ts" />
-/// <reference path="RawWebsocketMessage.ts" />
-/// <reference path="ConnectionMessage.ts" />
+import { ConnectionMessage } from "./ConnectionMessage";
+import { Promise } from "./Promise";
+import { RawWebsocketMessage } from "./RawWebsocketMessage";
 
-namespace Common {
-
-    export interface IWebsocketMessageFormatter {
-        ToConnectionMessage(message: RawWebsocketMessage): Promise<ConnectionMessage>;
-        FromConnectionMessage(message: ConnectionMessage): Promise<RawWebsocketMessage>;
-    }
-
+export interface IWebsocketMessageFormatter {
+    ToConnectionMessage(message: RawWebsocketMessage): Promise<ConnectionMessage>;
+    FromConnectionMessage(message: ConnectionMessage): Promise<RawWebsocketMessage>;
 }

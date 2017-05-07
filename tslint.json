@@ -24,9 +24,8 @@
       }
     ],
 
-    /* For a small library like this module loaders will be costly. So we will use namespaces and references to transpile to a single js file instead. */
-    "no-reference": false,
-    "no-namespace": false,
+    "no-reference": true,
+    "no-namespace": true,
     "no-bitwise": false,
     "no-shadowed-variable": false,
 

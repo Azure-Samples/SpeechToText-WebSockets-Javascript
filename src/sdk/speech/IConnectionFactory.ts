@@ -1,14 +1,10 @@
-/// <reference path="..\..\common\Promise.ts" />
-/// <reference path="..\..\common\IConnection.ts" />
-/// <reference path="IAuthentication.ts" />
-/// <reference path="RecognizerConfig.ts" />
+import { IConnection } from "../../common/Exports";
+import { AuthInfo } from "./IAuthentication";
+import { RecognizerConfig } from "./RecognizerConfig";
 
-namespace Speech {
-
-    export interface IConnectionFactory {
-        Create(
-            config: RecognizerConfig,
-            authInfo: AuthInfo,
-            connectionId?: string): Common.IConnection;
-    }
+export interface IConnectionFactory {
+    Create(
+        config: RecognizerConfig,
+        authInfo: AuthInfo,
+        connectionId?: string): IConnection;
 }

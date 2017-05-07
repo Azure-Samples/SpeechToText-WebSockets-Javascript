@@ -1,59 +1,56 @@
-/// <reference path="Error.ts" />
-/// <reference path="Promise.ts" />
-/// <reference path="ConnectionMessage.ts" />
+import { MessageType } from "./ConnectionMessage";
+import { ArgumentNullError, InvalidOperationError } from "./Error";
+import { CreateNoDashGuid } from "./Guid";
 
-namespace Common {
+export class RawWebsocketMessage {
 
-    export class RawWebsocketMessage {
+    private messageType: MessageType;
+    private payload: any = null;
+    private id: string;
 
-        private messageType: MessageType;
-        private payload: any = null;
-        private id: string;
-
-        public constructor(messageType: MessageType, payload: any, id?: string) {
-            if (!payload) {
-                throw new ArgumentNullError("payload");
-            }
-
-            if (messageType === MessageType.Binary && !(payload instanceof ArrayBuffer)) {
-                throw new InvalidOperationError("Payload must be ArrayBuffer");
-            }
-
-            if (messageType === MessageType.Text && !(typeof (payload) === "string")) {
-                throw new InvalidOperationError("Payload must be a string");
-            }
-
-            this.messageType = messageType;
-            this.payload = payload;
-            this.id = id ? id : GuidGenerator.CreateGuidWithNoDash();
+    public constructor(messageType: MessageType, payload: any, id?: string) {
+        if (!payload) {
+            throw new ArgumentNullError("payload");
         }
 
-        public get MessageType(): MessageType {
-            return this.messageType;
+        if (messageType === MessageType.Binary && !(payload instanceof ArrayBuffer)) {
+            throw new InvalidOperationError("Payload must be ArrayBuffer");
         }
 
-        public get Payload(): any {
-            return this.payload;
+        if (messageType === MessageType.Text && !(typeof (payload) === "string")) {
+            throw new InvalidOperationError("Payload must be a string");
         }
 
-        public get TextContent(): string {
-            if (this.messageType === MessageType.Binary) {
-                throw new InvalidOperationError("Not supported for binary message");
-            }
+        this.messageType = messageType;
+        this.payload = payload;
+        this.id = id ? id : CreateNoDashGuid();
+    }
 
-            return this.payload as string;
+    public get MessageType(): MessageType {
+        return this.messageType;
+    }
+
+    public get Payload(): any {
+        return this.payload;
+    }
+
+    public get TextContent(): string {
+        if (this.messageType === MessageType.Binary) {
+            throw new InvalidOperationError("Not supported for binary message");
         }
 
-        public get BinaryContent(): ArrayBuffer {
-            if (this.messageType === MessageType.Text) {
-                throw new InvalidOperationError("Not supported for text message");
-            }
+        return this.payload as string;
+    }
 
-            return this.payload;
+    public get BinaryContent(): ArrayBuffer {
+        if (this.messageType === MessageType.Text) {
+            throw new InvalidOperationError("Not supported for text message");
         }
 
-        public get Id(): string {
-            return this.id;
-        }
+        return this.payload;
+    }
+
+    public get Id(): string {
+        return this.id;
     }
 }

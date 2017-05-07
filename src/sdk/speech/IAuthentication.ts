@@ -1,28 +1,24 @@
-/// <reference path="..\..\common\Promise.ts" />
+import { Promise } from "../../common/Exports";
 
-namespace Speech {
-    import Promise = Common.Promise;
+export interface IAuthentication {
+    Fetch(authFetchEventId: string): Promise<AuthInfo>;
+    FetchOnExpiry(authFetchEventId: string): Promise<AuthInfo>;
+}
 
-    export interface IAuthentication {
-        Fetch(authFetchEventId: string): Promise<AuthInfo>;
-        FetchOnExpiry(authFetchEventId: string): Promise<AuthInfo>;
+export class AuthInfo {
+    private headerName: string;
+    private token: string;
+
+    public constructor(headerName: string, token: string) {
+        this.headerName = headerName;
+        this.token = token;
     }
 
-    export class AuthInfo {
-        private headerName: string;
-        private token: string;
+    public get HeaderName(): string {
+        return this.headerName;
+    }
 
-        public constructor(headerName: string, token: string) {
-            this.headerName = headerName;
-            this.token = token;
-        }
-
-        public get HeaderName(): string {
-            return this.headerName;
-        }
-
-        public get Token(): string {
-            return this.token;
-        }
+    public get Token(): string {
+        return this.token;
     }
 }
