@@ -1,45 +1,43 @@
-/// <reference path="..\common\Stream.ts" />
-/// <reference path="IRecorder.ts" />
+import { Stream } from "../common/Exports";
+import { IRecorder } from "./IRecorder";
 
-namespace Common.Browser {
-    export class OpusRecorder implements IRecorder {
-        private mediaResources: IMediaResources;
-        private mediaRecorderOptions: any;
+export class OpusRecorder implements IRecorder {
+    private mediaResources: IMediaResources;
+    private mediaRecorderOptions: any;
 
-        constructor(options?: { mimeType: string, bitsPerSecond: number }) {
-            this.mediaRecorderOptions = options;
-        }
-
-        public Record = (mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void => {
-                   const mediaRecorder: any = new MediaRecorder(mediaStream, this.mediaRecorderOptions);
-                   const timeslice = 100; // this is in ms - 100 ensures that the chunk doesn't exceed the max size of chunk allowed in WS connection
-                   mediaRecorder.ondataavailable = (dataAvailableEvent: any) => {
-                        if (outputStream) {
-                            const reader = new FileReader();
-                            reader.readAsArrayBuffer(dataAvailableEvent.data);
-                            reader.onloadend = (event: ProgressEvent) => {
-                                outputStream.Write(reader.result);
-                            };
-                        }
-                    };
-
-                   this.mediaResources = {
-                        recorder: mediaRecorder,
-                        stream: mediaStream,
-                    };
-                   mediaRecorder.start(timeslice);
-        }
-
-        public ReleaseMediaResources = (): void => {
-            if (this.mediaResources.recorder.state !== "inactive") {
-                this.mediaResources.recorder.stop();
-            }
-            this.mediaResources.stream.getTracks().forEach((track: any) => track.stop());
-        }
+    constructor(options?: { mimeType: string, bitsPerSecond: number }) {
+        this.mediaRecorderOptions = options;
     }
 
-    interface IMediaResources {
-        stream: MediaStream;
-        recorder: MediaRecorder;
+    public Record = (mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void => {
+                const mediaRecorder: any = new MediaRecorder(mediaStream, this.mediaRecorderOptions);
+                const timeslice = 100; // this is in ms - 100 ensures that the chunk doesn't exceed the max size of chunk allowed in WS connection
+                mediaRecorder.ondataavailable = (dataAvailableEvent: any) => {
+                    if (outputStream) {
+                        const reader = new FileReader();
+                        reader.readAsArrayBuffer(dataAvailableEvent.data);
+                        reader.onloadend = (event: ProgressEvent) => {
+                            outputStream.Write(reader.result);
+                        };
+                    }
+                };
+
+                this.mediaResources = {
+                    recorder: mediaRecorder,
+                    stream: mediaStream,
+                };
+                mediaRecorder.start(timeslice);
     }
+
+    public ReleaseMediaResources = (): void => {
+        if (this.mediaResources.recorder.state !== "inactive") {
+            this.mediaResources.recorder.stop();
+        }
+        this.mediaResources.stream.getTracks().forEach((track: any) => track.stop());
+    }
+}
+
+interface IMediaResources {
+    stream: MediaStream;
+    recorder: MediaRecorder;
 }

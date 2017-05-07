@@ -1,8 +1,6 @@
-/// <reference path="..\common\Stream.ts" />
+import { Stream } from "../common/Exports";
 
-namespace Common.Browser {
-    export interface IRecorder {
-        Record(mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void;
-        ReleaseMediaResources(): void;
-    }
+export interface IRecorder {
+    Record(mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void;
+    ReleaseMediaResources(): void;
 }

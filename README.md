@@ -3,32 +3,36 @@ Microsoft's Speech Service is a cloud-based platform that features the most adva
 
 ## JavaScipt SDK - Sample Usage
 
+RequireJs(http://requirejs.org/) is a dependency. Make sure to reference it in your page before using the SDK.
+
 ```javascript
-// Creating a shorter alias for Speech
-let SR = Speech;
+// Resolve the SDK dependecy using RequireJs
+require(["Speech.Browser.Sdk"], function(SDK) {
+    // Now start using the SDK
+});
 
-// Setup the recongizer before
-function RecognizerSetup(recognitionMode, language, format, subscriptionKey) {
-    let recognizerConfig = new SR.RecognizerConfig(
-        new SR.SpeechConfig(
-            new SR.Context(
-                new SR.OS(navigator.userAgent, "Browser", null),
-                new SR.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
-        recognitionMode, // SR.RecognitionMode.Interactive  (Options - Interactive/Conversation/Dictation)
+// Setup the recongizer
+function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
+    let recognizerConfig = new SDK.RecognizerConfig(
+        new SDK.SpeechConfig(
+            new SDK.Context(
+                new SDK.OS(navigator.userAgent, "Browser", null),
+                new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
+        recognitionMode, // SDK.RecognitionMode.Interactive  (Options - Interactive/Conversation/Dictation)
         language, // Supported laguages are specific to each recognition mode. Refer to docs.
-        format); // SR.SpeechResultFormat.Simple (Options - Simple/Detailed)
+        format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
 
-    // Alternatively use SR.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
-    let authentication = new SR.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
+    // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
+    let authentication = new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
 
-    return SR.Browser.Recognizer.Create(recognizerConfig, authentication);
+    return SDK.Recognizer.Create(recognizerConfig, authentication);
 }
 
-function RecognizerStart(recognizer) {
+function RecognizerStart(SDK, recognizer) {
     recognizer.Recognize((event) => {
         /*
             Alternative syntax for typescript devs.
-            if (event instanceof SR.RecognitionTriggeredEvent)
+            if (event instanceof SDK.RecognitionTriggeredEvent)
         */
         switch (event.Name) {
             case "RecognitionTriggeredEvent" :
@@ -74,7 +78,7 @@ function RecognizerStart(recognizer) {
     });
 }
 
-function RecognizerStop(recognizer) {
+function RecognizerStop(SDK, recognizer) {
     // recognizer.AudioSource.Detach(audioNodeId) can be also used here. (audioNodeId is part of ListeningStartedEvent)
     recognizer.AudioSource.TurnOff();
 }

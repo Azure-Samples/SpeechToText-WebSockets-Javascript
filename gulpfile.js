@@ -10,10 +10,11 @@ gulp.task("build", function() {
             "src/common/**/*.ts",
             "src/common.browser/**/*.ts",
             "src/sdk/speech/**/*.ts",
-            "src/sdk/speech.browser/**/*.ts"])
+            "src/sdk/speech.browser/**/*.ts",
+            "Speech.Browser.Sdk.ts"])
         .pipe(tslint({
             formatter: "prose",
-            configuration: "src/tslint.json"
+            configuration: "tslint.json"
         }))
         .pipe(tslint.report({
             summarizeFailureOutput: true
@@ -25,6 +26,7 @@ gulp.task("build", function() {
             declaration: true,
             noImplicitAny: true,
             removeComments: true,
+            module: "AMD",
             out: 'speech.browser.sdk.js'
         }))
         .pipe(sourcemaps.write("."))

@@ -1,31 +1,24 @@
-/// <reference path="..\..\common\Error.ts" />
-/// <reference path="..\..\common\Promise.ts" />
-/// <reference path="IAuthentication.ts" />
+import { ArgumentNullError, Promise, PromiseHelper } from "../../common/Exports";
+import { AuthInfo, IAuthentication } from "./IAuthentication";
 
-namespace Speech {
-    import ArgumentNullError = Common.ArgumentNullError;
-    import Promise = Common.Promise;
-    import PromiseHelper = Common.PromiseHelper;
+const AuthHeader: string = "Ocp-Apim-Subscription-Key";
 
-    const AuthHeader: string = "Ocp-Apim-Subscription-Key";
+export class CognitiveSubscriptionKeyAuthentication implements IAuthentication {
+    private authInfo: AuthInfo;
 
-    export class CognitiveSubscriptionKeyAuthentication implements IAuthentication {
-        private authInfo: AuthInfo;
-
-        constructor(subscriptionKey: string) {
-            if (!subscriptionKey) {
-                throw new ArgumentNullError("subscriptionKey");
-            }
-
-            this.authInfo = new AuthInfo(AuthHeader, subscriptionKey);
+    constructor(subscriptionKey: string) {
+        if (!subscriptionKey) {
+            throw new ArgumentNullError("subscriptionKey");
         }
 
-        public Fetch = (authFetchEventId: string): Promise<AuthInfo> => {
-            return PromiseHelper.FromResult(this.authInfo);
-        }
+        this.authInfo = new AuthInfo(AuthHeader, subscriptionKey);
+    }
 
-        public FetchOnExpiry = (authFetchEventId: string): Promise<AuthInfo> => {
-            return PromiseHelper.FromResult(this.authInfo);
-        }
+    public Fetch = (authFetchEventId: string): Promise<AuthInfo> => {
+        return PromiseHelper.FromResult(this.authInfo);
+    }
+
+    public FetchOnExpiry = (authFetchEventId: string): Promise<AuthInfo> => {
+        return PromiseHelper.FromResult(this.authInfo);
     }
 }

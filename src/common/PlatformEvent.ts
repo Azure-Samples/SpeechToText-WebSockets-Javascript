@@ -1,42 +1,39 @@
-/// <reference path="GuidGenerator.ts"/>
-/// <reference path="IDictionary.ts"/>
+import { CreateNoDashGuid } from "./Guid";
+import { IStringDictionary } from "./IDictionary";
 
-namespace Common {
+export enum EventType {
+    Debug,
+    Info,
+    Warning,
+    Error,
+}
 
-    export enum EventType {
-        Debug,
-        Info,
-        Warning,
-        Error,
+export class PlatformEvent {
+    private eventId: string;
+    private eventTime: string;
+    private eventType: EventType;
+    private metadata: IStringDictionary<string>;
+
+    constructor(eventType: EventType) {
+        this.eventId = CreateNoDashGuid();
+        this.eventTime = new Date().toISOString();
+        this.eventType = eventType;
+        this.metadata = { };
     }
 
-    export class PlatformEvent {
-        private eventId: string;
-        private eventTime: string;
-        private eventType: EventType;
-        private metadata: IStringDictionary<string>;
+    public get EventId(): string {
+        return this.eventId;
+    }
 
-        constructor(eventType: EventType) {
-            this.eventId = GuidGenerator.CreateGuidWithNoDash();
-            this.eventTime = new Date().toISOString();
-            this.eventType = eventType;
-            this.metadata = { };
-        }
+    public get EventTime(): string {
+        return this.eventTime;
+    }
 
-        public get EventId(): string {
-            return this.eventId;
-        }
+    public get EventType(): EventType {
+        return this.eventType;
+    }
 
-        public get EventTime(): string {
-            return this.eventTime;
-        }
-
-        public get EventType(): EventType {
-            return this.eventType;
-        }
-
-        public get Metadata(): IStringDictionary<string> {
-            return this.metadata;
-        }
+    public get Metadata(): IStringDictionary<string> {
+        return this.metadata;
     }
 }

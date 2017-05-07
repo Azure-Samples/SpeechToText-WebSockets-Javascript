@@ -1,23 +1,21 @@
-/// <reference path="../common/ITimer.ts"/>
+import { ITimer } from "../common/Exports";
 
-namespace Common.Browser {
-    export class Timer implements ITimer {
-        private delayInMillisec: number;
-        private timerId: number;
-        private successCallback: any;
-        constructor(delayInMillisec: number, successCallback: any) {
-            this.delayInMillisec = delayInMillisec;
-            this.successCallback = successCallback;
+export class Timer implements ITimer {
+    private delayInMillisec: number;
+    private timerId: number;
+    private successCallback: any;
+    constructor(delayInMillisec: number, successCallback: any) {
+        this.delayInMillisec = delayInMillisec;
+        this.successCallback = successCallback;
+    }
+    public start = (...params: any[]): void => {
+        if (this.timerId) {
+            this.stop();
         }
-        public start = (...params: any[]): void => {
-            if (this.timerId) {
-                this.stop();
-            }
-            this.timerId = setTimeout(this.successCallback, this.delayInMillisec, params);
-        }
+        this.timerId = setTimeout(this.successCallback, this.delayInMillisec, params);
+    }
 
-        public stop = (): void => {
-            clearTimeout(this.timerId);
-        }
+    public stop = (): void => {
+        clearTimeout(this.timerId);
     }
 }

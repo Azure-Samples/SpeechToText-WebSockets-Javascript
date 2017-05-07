@@ -1,106 +1,110 @@
-/// <reference path="..\common\Error.ts" />
-/// <reference path="..\common\Promise.ts" />
-/// <reference path="..\common\IDictionary.ts" />
-/// <reference path="..\common\IConnection.ts" />
-/// <reference path="..\common\ConnectionOpenResponse.ts" />
-/// <reference path="..\common\IWebsocketMessageFormatter.ts" />
-/// <reference path="WebsocketMessageAdapter.ts" />
+import {
+    ArgumentNullError,
+    ConnectionMessage,
+    ConnectionOpenResponse,
+    ConnectionState,
+    CreateNoDashGuid,
+    EventSource,
+    IConnection,
+    IStringDictionary,
+    IWebsocketMessageFormatter,
+    PlatformEvent,
+    Promise,
+} from "../common/Exports";
+import { WebsocketMessageAdapter } from "./WebsocketMessageAdapter";
 
-namespace Common.Browser {
+export class WebsocketConnection implements IConnection {
 
-    export class WebsocketConnection implements IConnection {
+    private uri: string;
+    private messageFormatter: IWebsocketMessageFormatter;
+    private connectionMessageAdapter: WebsocketMessageAdapter;
+    private id: string;
+    private isDisposed: boolean = false;
 
-        private uri: string;
-        private messageFormatter: IWebsocketMessageFormatter;
-        private connectionMessageAdapter: WebsocketMessageAdapter;
-        private id: string;
-        private isDisposed: boolean = false;
+    public constructor(
+        uri: string,
+        queryParameters: IStringDictionary<string>,
+        headers: IStringDictionary<string>,
+        messageFormatter: IWebsocketMessageFormatter,
+        connectionId?: string) {
 
-        public constructor(
-            uri: string,
-            queryParameters: IStringDictionary<string>,
-            headers: IStringDictionary<string>,
-            messageFormatter: IWebsocketMessageFormatter,
-            connectionId?: string) {
+        if (!uri) {
+            throw new ArgumentNullError("uri");
+        }
 
-            if (!uri) {
-                throw new ArgumentNullError("uri");
-            }
+        if (!messageFormatter) {
+            throw new ArgumentNullError("messageFormatter");
+        }
 
-            if (!messageFormatter) {
-                throw new ArgumentNullError("messageFormatter");
-            }
+        this.messageFormatter = messageFormatter;
 
-            this.messageFormatter = messageFormatter;
+        let queryParams = "";
+        let i = 0;
 
-            let queryParams = "";
-            let i = 0;
-
-            if (queryParameters) {
-                for (const paramName in queryParameters) {
-                    if (paramName) {
-                        queryParams += i === 0 ? "?" : "&";
-                        const val = encodeURIComponent(queryParameters[paramName]);
-                        queryParams += `${paramName}=${val}`;
-                        i++;
-                    }
+        if (queryParameters) {
+            for (const paramName in queryParameters) {
+                if (paramName) {
+                    queryParams += i === 0 ? "?" : "&";
+                    const val = encodeURIComponent(queryParameters[paramName]);
+                    queryParams += `${paramName}=${val}`;
+                    i++;
                 }
             }
+        }
 
-            if (headers) {
-                for (const headerName in headers) {
-                    if (headerName) {
-                        queryParams += i === 0 ? "?" : "&";
-                        const val = encodeURIComponent(headers[headerName]);
-                        queryParams += `${headerName}=${val}`;
-                        i++;
-                    }
+        if (headers) {
+            for (const headerName in headers) {
+                if (headerName) {
+                    queryParams += i === 0 ? "?" : "&";
+                    const val = encodeURIComponent(headers[headerName]);
+                    queryParams += `${headerName}=${val}`;
+                    i++;
                 }
             }
-
-            this.uri = uri + queryParams;
-            this.id = connectionId ? connectionId : GuidGenerator.CreateGuidWithNoDash();
-
-            this.connectionMessageAdapter = new WebsocketMessageAdapter(
-                this.uri,
-                this.Id,
-                this.messageFormatter);
         }
 
-        public Dispose = (): void => {
-            this.isDisposed = true;
+        this.uri = uri + queryParams;
+        this.id = connectionId ? connectionId : CreateNoDashGuid();
 
-            if (this.connectionMessageAdapter) {
-                this.connectionMessageAdapter.Close();
-            }
-        }
+        this.connectionMessageAdapter = new WebsocketMessageAdapter(
+            this.uri,
+            this.Id,
+            this.messageFormatter);
+    }
 
-        public IsDisposed = (): boolean => {
-            return this.isDisposed;
-        }
+    public Dispose = (): void => {
+        this.isDisposed = true;
 
-        public get Id(): string {
-            return this.id;
+        if (this.connectionMessageAdapter) {
+            this.connectionMessageAdapter.Close();
         }
+    }
 
-        public State = (): ConnectionState => {
-            return this.connectionMessageAdapter.State;
-        }
+    public IsDisposed = (): boolean => {
+        return this.isDisposed;
+    }
 
-        public Open = (): Promise<ConnectionOpenResponse> => {
-            return this.connectionMessageAdapter.Open();
-        }
+    public get Id(): string {
+        return this.id;
+    }
 
-        public Send = (message: ConnectionMessage): Promise<boolean> => {
-            return this.connectionMessageAdapter.Send(message);
-        }
+    public State = (): ConnectionState => {
+        return this.connectionMessageAdapter.State;
+    }
 
-        public Read = (): Promise<ConnectionMessage> => {
-            return this.connectionMessageAdapter.Read();
-        }
+    public Open = (): Promise<ConnectionOpenResponse> => {
+        return this.connectionMessageAdapter.Open();
+    }
 
-        public get Events(): EventSource<PlatformEvent> {
-            return this.connectionMessageAdapter.Events;
-        }
+    public Send = (message: ConnectionMessage): Promise<boolean> => {
+        return this.connectionMessageAdapter.Send(message);
+    }
+
+    public Read = (): Promise<ConnectionMessage> => {
+        return this.connectionMessageAdapter.Read();
+    }
+
+    public get Events(): EventSource<PlatformEvent> {
+        return this.connectionMessageAdapter.Events;
     }
 }
