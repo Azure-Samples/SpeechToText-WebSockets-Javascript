@@ -1,4 +1,5 @@
 var gulp = require("gulp");
+var install = require("gulp-install");
 var debug = require('gulp-debug');
 var ts = require('gulp-typescript');
 var sourcemaps = require('gulp-sourcemaps');
@@ -19,6 +20,7 @@ gulp.task("build", function() {
         .pipe(tslint.report({
             summarizeFailureOutput: true
         }))
+        .pipe(install())
         /*.pipe(debug({ title: 'Processing' }))*/
         .pipe(sourcemaps.init())
         .pipe(ts({
