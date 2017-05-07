@@ -23,6 +23,13 @@ import {
 } from "../common/Exports";
 import { IRecorder } from "./IRecorder";
 
+// Extending the default definition with browser specific definitions for backward compatibility
+interface INavigatorUserMedia extends NavigatorUserMedia {
+    webkitGetUserMedia?: (constraints: MediaStreamConstraints, successCallback: NavigatorUserMediaSuccessCallback, errorCallback: NavigatorUserMediaErrorCallback) => void;
+    mozGetUserMedia?: (constraints: MediaStreamConstraints, successCallback: NavigatorUserMediaSuccessCallback, errorCallback: NavigatorUserMediaErrorCallback) => void;
+    msGetUserMedia?: (constraints: MediaStreamConstraints, successCallback: NavigatorUserMediaSuccessCallback, errorCallback: NavigatorUserMediaErrorCallback) => void;
+}
+
 export class MicAudioSource implements IAudioSource {
 
     private streams: IStringDictionary<Stream<ArrayBuffer>> = {};
@@ -49,14 +56,13 @@ export class MicAudioSource implements IAudioSource {
         }
 
         this.initializeDeferral = new Deferred<boolean>();
+
+        const nav = window.navigator as INavigatorUserMedia;
         window.navigator.getUserMedia = (
-            navigator.getUserMedia ||
-            // tslint:disable-next-line:no-string-literal
-            navigator["webkitGetUserMedia"] ||
-            // tslint:disable-next-line:no-string-literal
-            navigator["mozGetUserMedia"] ||
-            // tslint:disable-next-line:no-string-literal
-            navigator["msGetUserMedia"]
+            window.navigator.getUserMedia ||
+            (window.navigator as INavigatorUserMedia).webkitGetUserMedia ||
+            (window.navigator as INavigatorUserMedia).mozGetUserMedia ||
+            (window.navigator as INavigatorUserMedia).msGetUserMedia
         );
 
         if (!window.navigator.getUserMedia) {
