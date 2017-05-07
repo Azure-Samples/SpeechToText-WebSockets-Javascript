@@ -16,6 +16,13 @@
     "websocket",
     "speechtotext"
   ],
+  "bugs": {
+    "url": "https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript.git"
+  },
   "author": "Microsoft",
   "license": "ISC",
   "devDependencies": {
@@ -25,7 +32,7 @@
     "gulp-tslint": "^8.0.0",
     "gulp-typescript": "^3.1.6",
     "gulp-util": "^3.0.8",
-    "tslint": "^5.1.0", 
+    "tslint": "^5.1.0",
     "typescript": "^2.3.2"
   }
 }
