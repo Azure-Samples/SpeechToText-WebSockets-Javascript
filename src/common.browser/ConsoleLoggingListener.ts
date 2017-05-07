@@ -36,7 +36,7 @@ export class ConsoleLoggingListener implements IEventListener<PlatformEvent> {
         }
     }
 
-    private ToString = (event: PlatformEvent): string => {
+    private ToString = (event: any): string => {
         const logFragments = [
             `${event.EventTime}`,
         ];

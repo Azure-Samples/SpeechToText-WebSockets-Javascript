@@ -60,18 +60,20 @@ export class PcmRecorder implements IRecorder {
     }
 
     public ReleaseMediaResources = (): void => {
+        if (this.mediaResources) {
             if (this.mediaResources.scriptProcessorNode) {
-            this.mediaResources.scriptProcessorNode.disconnect();
-            this.mediaResources.scriptProcessorNode = null;
+                this.mediaResources.scriptProcessorNode.disconnect();
+                this.mediaResources.scriptProcessorNode = null;
             }
             if (this.mediaResources.source) {
-            this.mediaResources.source.disconnect();
-            this.mediaResources.stream.getTracks().forEach((track: any) => track.stop());
-            this.mediaResources.source = null;
+                this.mediaResources.source.disconnect();
+                this.mediaResources.stream.getTracks().forEach((track: any) => track.stop());
+                this.mediaResources.source = null;
             }
-            if (this.mediaResources.context.state !== "closed") {
-            this.mediaResources.context.close();
+            if (this.mediaResources.context && this.mediaResources.context.state !== "closed") {
+                this.mediaResources.context.close();
             }
+        }
     }
 }
 

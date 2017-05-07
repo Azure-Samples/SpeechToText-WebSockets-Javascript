@@ -1804,10 +1804,11 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                     return _this.initializeDeferral.Promise();
                 }
                 _this.initializeDeferral = new Exports_3.Deferred();
-                window.navigator.getUserMedia = (navigator.getUserMedia ||
-                    navigator["webkitGetUserMedia"] ||
-                    navigator["mozGetUserMedia"] ||
-                    navigator["msGetUserMedia"]);
+                var nav = window.navigator;
+                window.navigator.getUserMedia = (window.navigator.getUserMedia ||
+                    window.navigator.webkitGetUserMedia ||
+                    window.navigator.mozGetUserMedia ||
+                    window.navigator.msGetUserMedia);
                 if (!window.navigator.getUserMedia) {
                     var errorMsg = "Browser doesnot support getUserMedia.";
                     _this.initializeDeferral.Reject(errorMsg);
@@ -1993,17 +1994,19 @@ define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Expo
                 scriptNode.connect(mediaStreamSource.context.destination);
             };
             this.ReleaseMediaResources = function () {
-                if (_this.mediaResources.scriptProcessorNode) {
-                    _this.mediaResources.scriptProcessorNode.disconnect();
-                    _this.mediaResources.scriptProcessorNode = null;
-                }
-                if (_this.mediaResources.source) {
-                    _this.mediaResources.source.disconnect();
-                    _this.mediaResources.stream.getTracks().forEach(function (track) { return track.stop(); });
-                    _this.mediaResources.source = null;
-                }
-                if (_this.mediaResources.context.state !== "closed") {
-                    _this.mediaResources.context.close();
+                if (_this.mediaResources) {
+                    if (_this.mediaResources.scriptProcessorNode) {
+                        _this.mediaResources.scriptProcessorNode.disconnect();
+                        _this.mediaResources.scriptProcessorNode = null;
+                    }
+                    if (_this.mediaResources.source) {
+                        _this.mediaResources.source.disconnect();
+                        _this.mediaResources.stream.getTracks().forEach(function (track) { return track.stop(); });
+                        _this.mediaResources.source = null;
+                    }
+                    if (_this.mediaResources.context && _this.mediaResources.context.state !== "closed") {
+                        _this.mediaResources.context.close();
+                    }
                 }
             };
         }
