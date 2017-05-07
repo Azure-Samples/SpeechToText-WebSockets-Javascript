@@ -1,5 +1,5 @@
 {
-  "name": "@speech/microsoft-speech-browser-sdk",
+  "name": "microsoft-speech-browser-sdk",
   "version": "0.0.1",
   "description": "Microsoft Speech SDK for browsers",
   "main": "distrib/speech.browser.sdk.js",
