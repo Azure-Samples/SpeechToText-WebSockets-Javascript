@@ -4,6 +4,4 @@
 /.gitattributes
 /.gitignore
 /.npmignore
-/.npmrc
 /.vscode
-/web.config
