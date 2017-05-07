@@ -37,7 +37,7 @@ export class RecognizerConfig {
         return this.language;
     }
 
-    public get Format(): SpeechResultFormat{
+    public get Format(): SpeechResultFormat {
         return this.format;
     }
 
@@ -63,21 +63,21 @@ export class SpeechConfig {
     }
 
     public Serialize = (): string => {
-        return JSON.stringify(this, (key: any, value: any) : any => {
-        if (value && typeof value === "object") {
-            const replacement: any = {};
-            for (const k in value) {
-                if (Object.hasOwnProperty.call(value, k)) {
-                    replacement[k && k.charAt(0).toLowerCase() + k.substring(1)] = value[k];
+        return JSON.stringify(this, (key: any, value: any): any => {
+            if (value && typeof value === "object") {
+                const replacement: any = {};
+                for (const k in value) {
+                    if (Object.hasOwnProperty.call(value, k)) {
+                        replacement[k && k.charAt(0).toLowerCase() + k.substring(1)] = value[k];
+                    }
                 }
+                return replacement;
             }
-            return replacement;
-        }
-        return value;
+            return value;
         });
     }
 
-    public get Context(): Context{
+    public get Context(): Context {
         return this.context;
     }
 

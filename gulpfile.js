@@ -1,21 +1,21 @@
 var gulp = require("gulp");
 var ts = require('gulp-typescript');
 var sourcemaps = require('gulp-sourcemaps');
-var tslint = require("gulp-tslint");
+var tslint = require("gulp-tslint");
 
-gulp.task("build", function() {
+gulp.task("build", function () {
     return gulp.src([
-            "src/common/**/*.ts",
-            "src/common.browser/**/*.ts",
-            "src/sdk/speech/**/*.ts",
-            "src/sdk/speech.browser/**/*.ts",
-            "Speech.Browser.Sdk.ts"])
+        "src/common/**/*.ts",
+        "src/common.browser/**/*.ts",
+        "src/sdk/speech/**/*.ts",
+        "src/sdk/speech.browser/**/*.ts",
+        "Speech.Browser.Sdk.ts"])
         .pipe(tslint({
-            formatter: "prose",
-            configuration: "tslint.json"
-        }))
-        .pipe(tslint.report({
-            summarizeFailureOutput: true
+            formatter: "prose",
+            configuration: "tslint.json"
+        }))
+        .pipe(tslint.report({
+            summarizeFailureOutput: true
         }))
         .pipe(sourcemaps.init())
         .pipe(ts({

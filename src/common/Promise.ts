@@ -1,4 +1,4 @@
-import { ArgumentNullError  } from "./Error";
+import { ArgumentNullError } from "./Error";
 
 export enum PromiseState {
     None,

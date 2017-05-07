@@ -21,10 +21,10 @@ export class CognitiveTokenAuthentication implements IAuthentication {
     }
 
     public Fetch = (authFetchEventId: string): Promise<AuthInfo> => {
-        return  this.fetchCallback(authFetchEventId).OnSuccessContinueWith((token: string) => new AuthInfo(AuthHeader, token));
+        return this.fetchCallback(authFetchEventId).OnSuccessContinueWith((token: string) => new AuthInfo(AuthHeader, token));
     }
 
     public FetchOnExpiry = (authFetchEventId: string): Promise<AuthInfo> => {
-        return  this.fetchOnExpiryCallback(authFetchEventId).OnSuccessContinueWith((token: string) => new AuthInfo(AuthHeader, token));
+        return this.fetchOnExpiryCallback(authFetchEventId).OnSuccessContinueWith((token: string) => new AuthInfo(AuthHeader, token));
     }
 }

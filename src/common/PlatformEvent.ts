@@ -18,7 +18,7 @@ export class PlatformEvent {
         this.eventId = CreateNoDashGuid();
         this.eventTime = new Date().toISOString();
         this.eventType = eventType;
-        this.metadata = { };
+        this.metadata = {};
     }
 
     public get EventId(): string {
