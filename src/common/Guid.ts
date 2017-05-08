@@ -1,4 +1,9 @@
 
+/**
+ * Create a GUID
+ *
+ * @returns {string} The generated Guid
+ */
 const CreateGuid: () => string = (): string => {
     let d = new Date().getTime();
     const guid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c: string) => {
@@ -10,6 +15,11 @@ const CreateGuid: () => string = (): string => {
     return guid;
 };
 
+/**
+ * Create a No-dash GUID
+ *
+ * @returns {string} The generated No-Dash Guid
+ */
 const CreateNoDashGuid: () => string = (): string => {
     return CreateGuid().replace(new RegExp("-", "g"), "").toUpperCase();
 };

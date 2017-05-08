@@ -1,3 +1,57 @@
+declare module "src/common/Error" {
+    /**
+     * The error that is thrown when an argument passed in is null.
+     *
+     * @export
+     * @class ArgumentNullError
+     * @extends {Error}
+     */
+    export class ArgumentNullError extends Error {
+        /**
+         * Creates an instance of ArgumentNullError.
+         *
+         * @param {string} argumentName Name of the argument that is null
+         *
+         * @memberOf ArgumentNullError
+         */
+        constructor(argumentName: string);
+    }
+    /**
+     * The error that is thrown when an invalid operation is performed in the code.
+     *
+     * @export
+     * @class InvalidOperationError
+     * @extends {Error}
+     */
+    export class InvalidOperationError extends Error {
+        /**
+         * Creates an instance of InvalidOperationError.
+         *
+         * @param {string} error The error
+         *
+         * @memberOf InvalidOperationError
+         */
+        constructor(error: string);
+    }
+    /**
+     * The error that is thrown when an object is disposed.
+     *
+     * @export
+     * @class ObjectDisposedError
+     * @extends {Error}
+     */
+    export class ObjectDisposedError extends Error {
+        /**
+         * Creates an instance of ObjectDisposedError.
+         *
+         * @param {string} objectName The object that is disposed
+         * @param {string} error The error
+         *
+         * @memberOf ObjectDisposedError
+         */
+        constructor(objectName: string, error?: string);
+    }
+}
 declare module "src/common/Guid" {
     const CreateGuid: () => string;
     const CreateNoDashGuid: () => string;
@@ -33,73 +87,297 @@ declare module "src/common/PlatformEvent" {
 }
 declare module "src/common/AudioSourceEvents" {
     import { EventType, PlatformEvent } from "src/common/PlatformEvent";
+    /**
+     * Base event class for all AudioSource events
+     *
+     * @export
+     * @class AudioSourceEvent
+     * @extends {PlatformEvent}
+     */
     export class AudioSourceEvent extends PlatformEvent {
         private audioSourceId;
+        /**
+         * Creates an instance of AudioSourceEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {EventType} [eventType=EventType.Info] The type of event.
+         *
+         * @memberof AudioSourceEvent
+         */
         constructor(audioSourceId: string, eventType?: EventType);
+        /**
+         * Unique id specific to an AudioSource instance.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof AudioSourceEvent
+         */
         readonly AudioSourceId: string;
     }
+    /**
+     * Event emitted just prior to AudioSource initialization.
+     *
+     * @export
+     * @class AudioSourceInitializingEvent
+     * @extends {AudioSourceEvent}
+     */
     export class AudioSourceInitializingEvent extends AudioSourceEvent {
+        /**
+         * Creates an instance of AudioSourceInitializingEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         *
+         * @memberof AudioSourceInitializingEvent
+         */
         constructor(audioSourceId: string);
     }
+    /**
+     * Event emitted when the AudioSource is ready to be read.
+     *
+     * @export
+     * @class AudioSourceReadyEvent
+     * @extends {AudioSourceEvent}
+     */
     export class AudioSourceReadyEvent extends AudioSourceEvent {
+        /**
+         * Creates an instance of AudioSourceReadyEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         *
+         * @memberof AudioSourceReadyEvent
+         */
         constructor(audioSourceId: string);
     }
+    /**
+     * Event emitted when AudioSource is turned off.
+     *
+     * @export
+     * @class AudioSourceOffEvent
+     * @extends {AudioSourceEvent}
+     */
     export class AudioSourceOffEvent extends AudioSourceEvent {
+        /**
+         * Creates an instance of AudioSourceOffEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         *
+         * @memberof AudioSourceOffEvent
+         */
         constructor(audioSourceId: string);
     }
+    /**
+     * Event emitted when an error is caught during initilizing AudioSource or while reading from it.
+     *
+     * @export
+     * @class AudioSourceErrorEvent
+     * @extends {AudioSourceEvent}
+     */
     export class AudioSourceErrorEvent extends AudioSourceEvent {
         private error;
+        /**
+         * Creates an instance of AudioSourceErrorEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} error The error caught during initilizing AudioSource or while reading from it.
+         *
+         * @memberof AudioSourceErrorEvent
+         */
         constructor(audioSourceId: string, error: string);
+        /**
+         * The error caught during initilizing AudioSource or while reading from it.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof AudioSourceErrorEvent
+         */
         readonly Error: string;
     }
+    /**
+     * Base event class for all AudioStreamNode events
+     *
+     * @export
+     * @class AudioStreamNodeEvent
+     * @extends {AudioSourceEvent}
+     */
     export class AudioStreamNodeEvent extends AudioSourceEvent {
         private audioNodeId;
+        /**
+         * Creates an instance of AudioStreamNodeEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeEvent
+         */
         constructor(audioSourceId: string, audioNodeId: string);
+        /**
+         * Unique id specific to an AudioNode instance.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof AudioStreamNodeEvent
+         */
         readonly AudioNodeId: string;
     }
+    /**
+     * Event emitted prior to attaching an AudioStreamNode to the AudioSource
+     *
+     * @export
+     * @class AudioStreamNodeAttachingEvent
+     * @extends {AudioStreamNodeEvent}
+     */
     export class AudioStreamNodeAttachingEvent extends AudioStreamNodeEvent {
+        /**
+         * Creates an instance of AudioStreamNodeAttachingEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeAttachingEvent
+         */
         constructor(audioSourceId: string, audioNodeId: string);
     }
+    /**
+     * Event emitted once AudioStreamNode is attached successfully to the AudioSource.
+     *
+     * @export
+     * @class AudioStreamNodeAttachedEvent
+     * @extends {AudioStreamNodeEvent}
+     */
     export class AudioStreamNodeAttachedEvent extends AudioStreamNodeEvent {
+        /**
+         * Creates an instance of AudioStreamNodeAttachedEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeAttachedEvent
+         */
         constructor(audioSourceId: string, audioNodeId: string);
     }
+    /**
+     * Event emitted once AudioStreamNode is detached successfully from the AudioSource.
+     *
+     * @export
+     * @class AudioStreamNodeDetachedEvent
+     * @extends {AudioStreamNodeEvent}
+     */
     export class AudioStreamNodeDetachedEvent extends AudioStreamNodeEvent {
+        /**
+         * Creates an instance of AudioStreamNodeDetachedEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeDetachedEvent
+         */
         constructor(audioSourceId: string, audioNodeId: string);
     }
+    /**
+     * Event emitted when an error is caught while attaching an AudioStreamNode to an AudioSource or while reading from AudioSource.
+     *
+     * @export
+     * @class AudioStreamNodeErrorEvent
+     * @extends {AudioStreamNodeEvent}
+     */
     export class AudioStreamNodeErrorEvent extends AudioStreamNodeEvent {
         private error;
+        /**
+         * Creates an instance of AudioStreamNodeErrorEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         * @param {string} error The error caught while attaching an AudioStreamNode to an AudioSource or while reading from AudioSource.
+         *
+         * @memberof AudioStreamNodeErrorEvent
+         */
         constructor(audioSourceId: string, audioNodeId: string, error: string);
+        /**
+         * The error caught while attaching an AudioStreamNode to an AudioSource or while reading from AudioSource.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof AudioStreamNodeErrorEvent
+         */
         readonly Error: string;
-    }
-}
-declare module "src/common/Error" {
-    export class ArgumentNullError extends Error {
-        constructor(argumentName: string);
-    }
-    export class InvalidOperationError extends Error {
-        constructor(error: string);
-    }
-    export class ObjectDisposedError extends Error {
-        constructor(objectName: string, error?: string);
     }
 }
 declare module "src/common/ConnectionMessage" {
     import { IStringDictionary } from "src/common/IDictionary";
+    /**
+     * The type of message
+     *
+     * @export
+     * @enum {number}
+     */
     export enum MessageType {
+        /**
+         * Text message
+         */
         Text = 0,
+        /**
+         * Binary message
+         */
         Binary = 1,
     }
+    /**
+     * Message sent or received on a Connection.
+     *
+     * @export
+     * @class ConnectionMessage
+     */
     export class ConnectionMessage {
         private messageType;
         private headers;
         private body;
         private id;
-        constructor(messageType: MessageType, body: any, headers?: IStringDictionary<string>, id?: string);
+        /**
+         * Creates an instance of ConnectionMessage.
+         * @param {MessageType} messageType The type of connection message.
+         * @param {string | ArrayBuffer} body The body part of the message. Body must be a 'string for Text messages' Or 'ArrayBuffer for Binary messages'.
+         * @param {IStringDictionary<string>} [headers] Optional headers part of the message.
+         * @param {string} [id] The unique id specific to the message. Auto-generated if not provided.
+         *
+         * @memberof ConnectionMessage
+         */
+        constructor(messageType: MessageType, body: string | ArrayBuffer, headers?: IStringDictionary<string>, id?: string);
+        /**
+         * The type of connection message.
+         *
+         * @readonly
+         * @type {MessageType}
+         * @memberof ConnectionMessage
+         */
         readonly MessageType: MessageType;
+        /**
+         * The headers part of the message.
+         *
+         * @readonly
+         * @type {*}
+         * @memberof ConnectionMessage
+         */
         readonly Headers: any;
-        readonly Body: any;
+        /**
+         *  The body part of the message. Body will be a 'string for Text messages' Or 'ArrayBuffer for Binary messages'.
+         *
+         * @readonly
+         * @type {string | ArrayBuffer}
+         * @memberof ConnectionMessage
+         */
+        readonly Body: string | ArrayBuffer;
+        /**
+         * The text body for a Text message. Throws an error for non-Text messages.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionMessage
+         */
         readonly TextBody: string;
+        /**
+         * The binary body for a Binary message. Throws an error for non-Binary messages.
+         *
+         * @readonly
+         * @type {ArrayBuffer}
+         * @memberof ConnectionMessage
+         */
         readonly BinaryBody: ArrayBuffer;
+        /**
+         * The unique id specific to the message.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionMessage
+         */
         readonly Id: string;
     }
 }
@@ -107,56 +385,263 @@ declare module "src/common/ConnectionEvents" {
     import { ConnectionMessage } from "src/common/ConnectionMessage";
     import { IStringDictionary } from "src/common/IDictionary";
     import { EventType, PlatformEvent } from "src/common/PlatformEvent";
+    /**
+     * Base event class for all Connection events
+     *
+     * @export
+     * @class ConnectionEvent
+     * @extends {PlatformEvent}
+     */
     export class ConnectionEvent extends PlatformEvent {
         private connectionId;
+        /**
+         * Creates an instance of ConnectionEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {EventType} [eventType=EventType.Info] The optional event type of the event.
+         *
+         * @memberof ConnectionEvent
+         */
         constructor(connectionId: string, eventType?: EventType);
+        /**
+         * Unique id specific to the connection under use.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionEvent
+         */
         readonly ConnectionId: string;
     }
+    /**
+     * Event emitted just prior to eatablishing a connection to the service.
+     *
+     * @export
+     * @class ConnectionStartEvent
+     * @extends {ConnectionEvent}
+     */
     export class ConnectionStartEvent extends ConnectionEvent {
         private uri;
         private headers;
+        /**
+         * Creates an instance of ConnectionStartEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {string} uri The connection url
+         * @param {IStringDictionary<string>} [headers] The connection headers
+         *
+         * @memberof ConnectionStartEvent
+         */
         constructor(connectionId: string, uri: string, headers?: IStringDictionary<string>);
+        /**
+         * The connection url
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionStartEvent
+         */
         readonly Uri: string;
+        /**
+         * The connection headers
+         *
+         * @readonly
+         * @type {IStringDictionary<string>}
+         * @memberof ConnectionStartEvent
+         */
         readonly Headers: IStringDictionary<string>;
     }
+    /**
+     * Event emitted once the connection is established.
+     *
+     * @export
+     * @class ConnectionEstablishedEvent
+     * @extends {ConnectionEvent}
+     */
     export class ConnectionEstablishedEvent extends ConnectionEvent {
+        /**
+         * Creates an instance of ConnectionEstablishedEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {IStringDictionary<string>} [metadata]
+         *
+         * @memberof ConnectionEstablishedEvent
+         */
         constructor(connectionId: string, metadata?: IStringDictionary<string>);
     }
+    /**
+     * Event emitted once the connection is closed
+     *
+     * @export
+     * @class ConnectionClosedEvent
+     * @extends {ConnectionEvent}
+     */
     export class ConnectionClosedEvent extends ConnectionEvent {
         private reason;
         private statusCode;
+        /**
+         * Creates an instance of ConnectionClosedEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {number} statusCode The connection close status code.
+         * @param {string} reason The connection close reason.
+         *
+         * @memberof ConnectionClosedEvent
+         */
         constructor(connectionId: string, statusCode: number, reason: string);
+        /**
+         * The connection close reason.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionClosedEvent
+         */
         readonly Reason: string;
+        /**
+         * The connection close status code.
+         *
+         * @readonly
+         * @type {number}
+         * @memberof ConnectionClosedEvent
+         */
         readonly StatusCode: number;
     }
+    /**
+     * The event emitted if there is an error establishing the connection to the service.
+     *
+     * @export
+     * @class ConnectionEstablishErrorEvent
+     * @extends {ConnectionEvent}
+     */
     export class ConnectionEstablishErrorEvent extends ConnectionEvent {
         private statusCode;
         private reason;
+        /**
+         * Creates an instance of ConnectionEstablishErrorEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {number} statuscode The connection establish error status code
+         * @param {string} reason The connection establish error reason
+         *
+         * @memberof ConnectionEstablishErrorEvent
+         */
         constructor(connectionId: string, statuscode: number, reason: string);
+        /**
+         *  The connection establish error reason
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionEstablishErrorEvent
+         */
         readonly Reason: string;
+        /**
+         *  The connection establish error status code
+         *
+         * @readonly
+         * @type {number}
+         * @memberof ConnectionEstablishErrorEvent
+         */
         readonly StatusCode: number;
     }
+    /**
+     * The event emitted on receving a message over the connection.
+     *
+     * @export
+     * @class ConnectionMessageReceivedEvent
+     * @extends {ConnectionEvent}
+     */
     export class ConnectionMessageReceivedEvent extends ConnectionEvent {
         private networkReceivedTime;
         private message;
+        /**
+         * Creates an instance of ConnectionMessageReceivedEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {string} networkReceivedTimeISO The time at which the message is received over the network.
+         * @param {ConnectionMessage} message The message payload received.
+         *
+         * @memberof ConnectionMessageReceivedEvent
+         */
         constructor(connectionId: string, networkReceivedTimeISO: string, message: ConnectionMessage);
+        /**
+         * The time at which the message is received over the network.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionMessageReceivedEvent
+         */
         readonly NetworkReceivedTime: string;
+        /**
+         * The message payload received.
+         *
+         * @readonly
+         * @type {ConnectionMessage}
+         * @memberof ConnectionMessageReceivedEvent
+         */
         readonly Message: ConnectionMessage;
     }
+    /**
+     * The event emitted on sending a message over the connection.
+     *
+     * @export
+     * @class ConnectionMessageSentEvent
+     * @extends {ConnectionEvent}
+     */
     export class ConnectionMessageSentEvent extends ConnectionEvent {
         private networkSentTime;
         private message;
+        /**
+         * Creates an instance of ConnectionMessageSentEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {string} networkSentTimeISO The time at which the message is sent over the network.
+         * @param {ConnectionMessage} message The message payload sent.
+         *
+         * @memberof ConnectionMessageSentEvent
+         */
         constructor(connectionId: string, networkSentTimeISO: string, message: ConnectionMessage);
+        /**
+         * The time at which the message is sent over the network.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionMessageSentEvent
+         */
         readonly NetworkSentTime: string;
+        /**
+         * The message payload sent.
+         *
+         * @readonly
+         * @type {ConnectionMessage}
+         * @memberof ConnectionMessageSentEvent
+         */
         readonly Message: ConnectionMessage;
     }
 }
 declare module "src/common/ConnectionOpenResponse" {
+    /**
+     * The connection open response
+     *
+     * @export
+     * @class ConnectionOpenResponse
+     */
     export class ConnectionOpenResponse {
         private statusCode;
         private reason;
+        /**
+         * Creates an instance of ConnectionOpenResponse.
+         * @param {number} statusCode The connection open response status code.
+         * @param {string} reason The connection open response reason.
+         *
+         * @memberof ConnectionOpenResponse
+         */
         constructor(statusCode: number, reason: string);
+        /**
+         * The connection open response status code.
+         *
+         * @readonly
+         * @type {number}
+         * @memberof ConnectionOpenResponse
+         */
         readonly StatusCode: number;
+        /**
+         * The connection open response reason.
+         *
+         * @readonly
+         * @type {string}
+         * @memberof ConnectionOpenResponse
+         */
         readonly Reason: string;
     }
 }
@@ -166,8 +651,29 @@ declare module "src/common/IDetachable" {
     }
 }
 declare module "src/common/IDisposable" {
+    /**
+     *
+     *
+     * @export
+     * @interface IDisposable
+     */
     export interface IDisposable {
+        /**
+         *
+         *
+         * @returns {boolean}
+         *
+         * @memberOf IDisposable
+         */
         IsDisposed(): boolean;
+        /**
+         * Performs cleanup operations on this instance
+         *
+         * @param {string} [reason] optional reason for disposing the instance.
+         * This will be used to throw errors when a operations are performed on the disposed object.
+         *
+         * @memberOf IDisposable
+         */
         Dispose(reason?: string): void;
     }
 }
@@ -191,25 +697,98 @@ declare module "src/common/EventSource" {
     import { IStringDictionary } from "src/common/IDictionary";
     import { IEventListener, IEventSource } from "src/common/IEventSource";
     import { PlatformEvent } from "src/common/PlatformEvent";
+    /**
+     *
+     *
+     * @export
+     * @class EventSource
+     * @implements {IEventSource<TEvent>}
+     * @template TEvent
+     */
     export class EventSource<TEvent extends PlatformEvent> implements IEventSource<TEvent> {
         private eventListeners;
         private metadata;
         private isDisposed;
+        /**
+         * Creates an instance of EventSource.
+         * @param {IStringDictionary<string>} [metadata]
+         *
+         * @memberof EventSource
+         */
         constructor(metadata?: IStringDictionary<string>);
+        /**
+         *
+         *
+         *
+         * @memberof EventSource
+         */
         OnEvent: (event: TEvent) => void;
+        /**
+         *
+         *
+         *
+         * @memberof EventSource
+         */
         Attach: (onEventCallback: (event: TEvent) => void) => IDetachable;
+        /**
+         *
+         *
+         *
+         * @memberof EventSource
+         */
         AttachListener: (listener: IEventListener<TEvent>) => IDetachable;
+        /**
+         *
+         *
+         *
+         * @memberof EventSource
+         */
         IsDisposed: () => boolean;
+        /**
+         *
+         *
+         *
+         * @memberof EventSource
+         */
         Dispose: () => void;
+        /**
+         *
+         *
+         * @readonly
+         * @type {IStringDictionary<string>}
+         * @memberof EventSource
+         */
         readonly Metadata: IStringDictionary<string>;
     }
 }
 declare module "src/common/Events" {
     import { IEventSource } from "src/common/IEventSource";
     import { PlatformEvent } from "src/common/PlatformEvent";
+    /**
+     * The global source for emitting and consuming all events.
+     *
+     * @export
+     * @class Events
+     */
     export class Events {
         private static instance;
-        static SetEventSource: (eventSource: IEventSource<PlatformEvent>) => void;
+        /**
+         * Sets the global event source.
+         *
+         * @static
+         * @param {IEventSource<PlatformEvent>} eventSource The event souce to set.
+         *
+         * @memberof Events
+         */
+        static SetEventSource(eventSource: IEventSource<PlatformEvent>): void;
+        /**
+         * The event source instance.
+         *
+         * @readonly
+         * @static
+         * @type {IEventSource<PlatformEvent>}
+         * @memberof Events
+         */
         static readonly Instance: IEventSource<PlatformEvent>;
     }
 }
@@ -494,7 +1073,23 @@ declare module "src/common/InMemoryStorage" {
 }
 declare module "src/common/ITimer" {
     export interface ITimer {
+        /**
+         * start timer
+         *
+         * @param {number} delay
+         * @param {(...args: any[]) => any} successCallback
+         * @returns {*}
+         *
+         * @memberOf ITimer
+         */
         start(): void;
+        /**
+         * stops timer
+         *
+         * @param {*} timerId
+         *
+         * @memberOf ITimer
+         */
         stop(): void;
     }
 }

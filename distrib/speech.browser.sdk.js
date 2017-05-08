@@ -8,6 +8,79 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+define("src/common/Error", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * The error that is thrown when an argument passed in is null.
+     *
+     * @export
+     * @class ArgumentNullError
+     * @extends {Error}
+     */
+    var ArgumentNullError = (function (_super) {
+        __extends(ArgumentNullError, _super);
+        /**
+         * Creates an instance of ArgumentNullError.
+         *
+         * @param {string} argumentName Name of the argument that is null
+         *
+         * @memberOf ArgumentNullError
+         */
+        function ArgumentNullError(argumentName) {
+            return _super.call(this, "ArgumentNull: " + argumentName) || this;
+        }
+        return ArgumentNullError;
+    }(Error));
+    exports.ArgumentNullError = ArgumentNullError;
+    /**
+     * The error that is thrown when an invalid operation is performed in the code.
+     *
+     * @export
+     * @class InvalidOperationError
+     * @extends {Error}
+     */
+    // tslint:disable-next-line:max-classes-per-file
+    var InvalidOperationError = (function (_super) {
+        __extends(InvalidOperationError, _super);
+        /**
+         * Creates an instance of InvalidOperationError.
+         *
+         * @param {string} error The error
+         *
+         * @memberOf InvalidOperationError
+         */
+        function InvalidOperationError(error) {
+            return _super.call(this, "InvalidOperation: " + error) || this;
+        }
+        return InvalidOperationError;
+    }(Error));
+    exports.InvalidOperationError = InvalidOperationError;
+    /**
+     * The error that is thrown when an object is disposed.
+     *
+     * @export
+     * @class ObjectDisposedError
+     * @extends {Error}
+     */
+    // tslint:disable-next-line:max-classes-per-file
+    var ObjectDisposedError = (function (_super) {
+        __extends(ObjectDisposedError, _super);
+        /**
+         * Creates an instance of ObjectDisposedError.
+         *
+         * @param {string} objectName The object that is disposed
+         * @param {string} error The error
+         *
+         * @memberOf ObjectDisposedError
+         */
+        function ObjectDisposedError(objectName, error) {
+            return _super.call(this, "ObjectDisposed(" + objectName + ": " + error) || this;
+        }
+        return ObjectDisposedError;
+    }(Error));
+    exports.ObjectDisposedError = ObjectDisposedError;
+});
 define("src/common/Guid", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -79,18 +152,43 @@ define("src/common/PlatformEvent", ["require", "exports", "src/common/Guid"], fu
     }());
     exports.PlatformEvent = PlatformEvent;
 });
-define("src/common/AudioSourceEvents", ["require", "exports", "src/common/PlatformEvent"], function (require, exports, PlatformEvent_1) {
+define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Error", "src/common/PlatformEvent"], function (require, exports, Error_1, PlatformEvent_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Base event class for all AudioSource events
+     *
+     * @export
+     * @class AudioSourceEvent
+     * @extends {PlatformEvent}
+     */
     var AudioSourceEvent = (function (_super) {
         __extends(AudioSourceEvent, _super);
+        /**
+         * Creates an instance of AudioSourceEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {EventType} [eventType=EventType.Info] The type of event.
+         *
+         * @memberof AudioSourceEvent
+         */
         function AudioSourceEvent(audioSourceId, eventType) {
             if (eventType === void 0) { eventType = PlatformEvent_1.EventType.Info; }
-            var _this = _super.call(this, eventType) || this;
+            var _this = this;
+            if (!audioSourceId) {
+                throw new Error_1.ArgumentNullError("audioSourceId");
+            }
+            _this = _super.call(this, eventType) || this;
             _this.audioSourceId = audioSourceId;
             return _this;
         }
         Object.defineProperty(AudioSourceEvent.prototype, "AudioSourceId", {
+            /**
+             * Unique id specific to an AudioSource instance.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof AudioSourceEvent
+             */
             get: function () {
                 return this.audioSourceId;
             },
@@ -100,38 +198,102 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
         return AudioSourceEvent;
     }(PlatformEvent_1.PlatformEvent));
     exports.AudioSourceEvent = AudioSourceEvent;
+    /**
+     * Event emitted just prior to AudioSource initialization.
+     *
+     * @export
+     * @class AudioSourceInitializingEvent
+     * @extends {AudioSourceEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioSourceInitializingEvent = (function (_super) {
         __extends(AudioSourceInitializingEvent, _super);
+        /**
+         * Creates an instance of AudioSourceInitializingEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         *
+         * @memberof AudioSourceInitializingEvent
+         */
         function AudioSourceInitializingEvent(audioSourceId) {
             return _super.call(this, audioSourceId) || this;
         }
         return AudioSourceInitializingEvent;
     }(AudioSourceEvent));
     exports.AudioSourceInitializingEvent = AudioSourceInitializingEvent;
+    /**
+     * Event emitted when the AudioSource is ready to be read.
+     *
+     * @export
+     * @class AudioSourceReadyEvent
+     * @extends {AudioSourceEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioSourceReadyEvent = (function (_super) {
         __extends(AudioSourceReadyEvent, _super);
+        /**
+         * Creates an instance of AudioSourceReadyEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         *
+         * @memberof AudioSourceReadyEvent
+         */
         function AudioSourceReadyEvent(audioSourceId) {
             return _super.call(this, audioSourceId) || this;
         }
         return AudioSourceReadyEvent;
     }(AudioSourceEvent));
     exports.AudioSourceReadyEvent = AudioSourceReadyEvent;
+    /**
+     * Event emitted when AudioSource is turned off.
+     *
+     * @export
+     * @class AudioSourceOffEvent
+     * @extends {AudioSourceEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioSourceOffEvent = (function (_super) {
         __extends(AudioSourceOffEvent, _super);
+        /**
+         * Creates an instance of AudioSourceOffEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         *
+         * @memberof AudioSourceOffEvent
+         */
         function AudioSourceOffEvent(audioSourceId) {
             return _super.call(this, audioSourceId) || this;
         }
         return AudioSourceOffEvent;
     }(AudioSourceEvent));
     exports.AudioSourceOffEvent = AudioSourceOffEvent;
+    /**
+     * Event emitted when an error is caught during initilizing AudioSource or while reading from it.
+     *
+     * @export
+     * @class AudioSourceErrorEvent
+     * @extends {AudioSourceEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioSourceErrorEvent = (function (_super) {
         __extends(AudioSourceErrorEvent, _super);
+        /**
+         * Creates an instance of AudioSourceErrorEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} error The error caught during initilizing AudioSource or while reading from it.
+         *
+         * @memberof AudioSourceErrorEvent
+         */
         function AudioSourceErrorEvent(audioSourceId, error) {
             var _this = _super.call(this, audioSourceId, PlatformEvent_1.EventType.Error) || this;
             _this.error = error;
             return _this;
         }
         Object.defineProperty(AudioSourceErrorEvent.prototype, "Error", {
+            /**
+             * The error caught during initilizing AudioSource or while reading from it.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof AudioSourceErrorEvent
+             */
             get: function () {
                 return this.error;
             },
@@ -141,14 +303,39 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
         return AudioSourceErrorEvent;
     }(AudioSourceEvent));
     exports.AudioSourceErrorEvent = AudioSourceErrorEvent;
+    /**
+     * Base event class for all AudioStreamNode events
+     *
+     * @export
+     * @class AudioStreamNodeEvent
+     * @extends {AudioSourceEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioStreamNodeEvent = (function (_super) {
         __extends(AudioStreamNodeEvent, _super);
+        /**
+         * Creates an instance of AudioStreamNodeEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeEvent
+         */
         function AudioStreamNodeEvent(audioSourceId, audioNodeId) {
             var _this = _super.call(this, audioSourceId) || this;
+            if (!audioNodeId) {
+                throw new Error_1.ArgumentNullError("audioNodeId");
+            }
             _this.audioNodeId = audioNodeId;
             return _this;
         }
         Object.defineProperty(AudioStreamNodeEvent.prototype, "AudioNodeId", {
+            /**
+             * Unique id specific to an AudioNode instance.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof AudioStreamNodeEvent
+             */
             get: function () {
                 return this.audioNodeId;
             },
@@ -158,38 +345,106 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
         return AudioStreamNodeEvent;
     }(AudioSourceEvent));
     exports.AudioStreamNodeEvent = AudioStreamNodeEvent;
+    /**
+     * Event emitted prior to attaching an AudioStreamNode to the AudioSource
+     *
+     * @export
+     * @class AudioStreamNodeAttachingEvent
+     * @extends {AudioStreamNodeEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioStreamNodeAttachingEvent = (function (_super) {
         __extends(AudioStreamNodeAttachingEvent, _super);
+        /**
+         * Creates an instance of AudioStreamNodeAttachingEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeAttachingEvent
+         */
         function AudioStreamNodeAttachingEvent(audioSourceId, audioNodeId) {
             return _super.call(this, audioSourceId, audioNodeId) || this;
         }
         return AudioStreamNodeAttachingEvent;
     }(AudioStreamNodeEvent));
     exports.AudioStreamNodeAttachingEvent = AudioStreamNodeAttachingEvent;
+    /**
+     * Event emitted once AudioStreamNode is attached successfully to the AudioSource.
+     *
+     * @export
+     * @class AudioStreamNodeAttachedEvent
+     * @extends {AudioStreamNodeEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioStreamNodeAttachedEvent = (function (_super) {
         __extends(AudioStreamNodeAttachedEvent, _super);
+        /**
+         * Creates an instance of AudioStreamNodeAttachedEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeAttachedEvent
+         */
         function AudioStreamNodeAttachedEvent(audioSourceId, audioNodeId) {
             return _super.call(this, audioSourceId, audioNodeId) || this;
         }
         return AudioStreamNodeAttachedEvent;
     }(AudioStreamNodeEvent));
     exports.AudioStreamNodeAttachedEvent = AudioStreamNodeAttachedEvent;
+    /**
+     * Event emitted once AudioStreamNode is detached successfully from the AudioSource.
+     *
+     * @export
+     * @class AudioStreamNodeDetachedEvent
+     * @extends {AudioStreamNodeEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioStreamNodeDetachedEvent = (function (_super) {
         __extends(AudioStreamNodeDetachedEvent, _super);
+        /**
+         * Creates an instance of AudioStreamNodeDetachedEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         *
+         * @memberof AudioStreamNodeDetachedEvent
+         */
         function AudioStreamNodeDetachedEvent(audioSourceId, audioNodeId) {
             return _super.call(this, audioSourceId, audioNodeId) || this;
         }
         return AudioStreamNodeDetachedEvent;
     }(AudioStreamNodeEvent));
     exports.AudioStreamNodeDetachedEvent = AudioStreamNodeDetachedEvent;
+    /**
+     * Event emitted when an error is caught while attaching an AudioStreamNode to an AudioSource or while reading from AudioSource.
+     *
+     * @export
+     * @class AudioStreamNodeErrorEvent
+     * @extends {AudioStreamNodeEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var AudioStreamNodeErrorEvent = (function (_super) {
         __extends(AudioStreamNodeErrorEvent, _super);
+        /**
+         * Creates an instance of AudioStreamNodeErrorEvent.
+         * @param {string} audioSourceId Unique id specific to the AudioSource instance under use.
+         * @param {string} audioNodeId Unique id specific to the AudioNode instance under use.
+         * @param {string} error The error caught while attaching an AudioStreamNode to an AudioSource or while reading from AudioSource.
+         *
+         * @memberof AudioStreamNodeErrorEvent
+         */
         function AudioStreamNodeErrorEvent(audioSourceId, audioNodeId, error) {
             var _this = _super.call(this, audioSourceId, audioNodeId) || this;
             _this.error = error;
             return _this;
         }
         Object.defineProperty(AudioStreamNodeErrorEvent.prototype, "Error", {
+            /**
+             * The error caught while attaching an AudioStreamNode to an AudioSource or while reading from AudioSource.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof AudioStreamNodeErrorEvent
+             */
             get: function () {
                 return this.error;
             },
@@ -200,59 +455,49 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     }(AudioStreamNodeEvent));
     exports.AudioStreamNodeErrorEvent = AudioStreamNodeErrorEvent;
 });
-define("src/common/Error", ["require", "exports"], function (require, exports) {
+define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error", "src/common/Guid"], function (require, exports, Error_2, Guid_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var ArgumentNullError = (function (_super) {
-        __extends(ArgumentNullError, _super);
-        function ArgumentNullError(argumentName) {
-            var _this = _super.call(this, argumentName) || this;
-            _this.name = "ArgumentNull";
-            _this.message = argumentName;
-            return _this;
-        }
-        return ArgumentNullError;
-    }(Error));
-    exports.ArgumentNullError = ArgumentNullError;
-    var InvalidOperationError = (function (_super) {
-        __extends(InvalidOperationError, _super);
-        function InvalidOperationError(error) {
-            var _this = _super.call(this, error) || this;
-            _this.name = "InvalidOperation";
-            _this.message = error;
-            return _this;
-        }
-        return InvalidOperationError;
-    }(Error));
-    exports.InvalidOperationError = InvalidOperationError;
-    var ObjectDisposedError = (function (_super) {
-        __extends(ObjectDisposedError, _super);
-        function ObjectDisposedError(objectName, error) {
-            var _this = _super.call(this, error) || this;
-            _this.name = objectName + "ObjectDisposed";
-            _this.message = error;
-            return _this;
-        }
-        return ObjectDisposedError;
-    }(Error));
-    exports.ObjectDisposedError = ObjectDisposedError;
-});
-define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error", "src/common/Guid"], function (require, exports, Error_1, Guid_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * The type of message
+     *
+     * @export
+     * @enum {number}
+     */
     var MessageType;
     (function (MessageType) {
+        /**
+         * Text message
+         */
         MessageType[MessageType["Text"] = 0] = "Text";
+        /**
+         * Binary message
+         */
         MessageType[MessageType["Binary"] = 1] = "Binary";
     })(MessageType = exports.MessageType || (exports.MessageType = {}));
+    /**
+     * Message sent or received on a Connection.
+     *
+     * @export
+     * @class ConnectionMessage
+     */
     var ConnectionMessage = (function () {
+        /**
+         * Creates an instance of ConnectionMessage.
+         * @param {MessageType} messageType The type of connection message.
+         * @param {string | ArrayBuffer} body The body part of the message. Body must be a 'string for Text messages' Or 'ArrayBuffer for Binary messages'.
+         * @param {IStringDictionary<string>} [headers] Optional headers part of the message.
+         * @param {string} [id] The unique id specific to the message. Auto-generated if not provided.
+         *
+         * @memberof ConnectionMessage
+         */
         function ConnectionMessage(messageType, body, headers, id) {
             this.body = null;
             if (messageType === MessageType.Text && body && !(typeof (body) === "string")) {
-                throw new Error_1.InvalidOperationError("Payload must be a string");
+                throw new Error_2.InvalidOperationError("Payload must be a string");
             }
             if (messageType === MessageType.Binary && body && !(body instanceof ArrayBuffer)) {
-                throw new Error_1.InvalidOperationError("Payload must be ArrayBuffer");
+                throw new Error_2.InvalidOperationError("Payload must be ArrayBuffer");
             }
             this.messageType = messageType;
             this.body = body;
@@ -260,6 +505,13 @@ define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error"
             this.id = id ? id : Guid_2.CreateNoDashGuid();
         }
         Object.defineProperty(ConnectionMessage.prototype, "MessageType", {
+            /**
+             * The type of connection message.
+             *
+             * @readonly
+             * @type {MessageType}
+             * @memberof ConnectionMessage
+             */
             get: function () {
                 return this.messageType;
             },
@@ -267,6 +519,13 @@ define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error"
             configurable: true
         });
         Object.defineProperty(ConnectionMessage.prototype, "Headers", {
+            /**
+             * The headers part of the message.
+             *
+             * @readonly
+             * @type {*}
+             * @memberof ConnectionMessage
+             */
             get: function () {
                 return this.headers;
             },
@@ -274,6 +533,13 @@ define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error"
             configurable: true
         });
         Object.defineProperty(ConnectionMessage.prototype, "Body", {
+            /**
+             *  The body part of the message. Body will be a 'string for Text messages' Or 'ArrayBuffer for Binary messages'.
+             *
+             * @readonly
+             * @type {string | ArrayBuffer}
+             * @memberof ConnectionMessage
+             */
             get: function () {
                 return this.body;
             },
@@ -281,9 +547,16 @@ define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error"
             configurable: true
         });
         Object.defineProperty(ConnectionMessage.prototype, "TextBody", {
+            /**
+             * The text body for a Text message. Throws an error for non-Text messages.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionMessage
+             */
             get: function () {
                 if (this.messageType === MessageType.Binary) {
-                    throw new Error_1.InvalidOperationError("Not supported for binary message");
+                    throw new Error_2.InvalidOperationError("Not supported for binary message");
                 }
                 return this.body;
             },
@@ -291,9 +564,16 @@ define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error"
             configurable: true
         });
         Object.defineProperty(ConnectionMessage.prototype, "BinaryBody", {
+            /**
+             * The binary body for a Binary message. Throws an error for non-Binary messages.
+             *
+             * @readonly
+             * @type {ArrayBuffer}
+             * @memberof ConnectionMessage
+             */
             get: function () {
                 if (this.messageType === MessageType.Text) {
-                    throw new Error_1.InvalidOperationError("Not supported for text message");
+                    throw new Error_2.InvalidOperationError("Not supported for text message");
                 }
                 return this.body;
             },
@@ -301,6 +581,13 @@ define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error"
             configurable: true
         });
         Object.defineProperty(ConnectionMessage.prototype, "Id", {
+            /**
+             * The unique id specific to the message.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionMessage
+             */
             get: function () {
                 return this.id;
             },
@@ -311,18 +598,43 @@ define("src/common/ConnectionMessage", ["require", "exports", "src/common/Error"
     }());
     exports.ConnectionMessage = ConnectionMessage;
 });
-define("src/common/ConnectionEvents", ["require", "exports", "src/common/PlatformEvent"], function (require, exports, PlatformEvent_2) {
+define("src/common/ConnectionEvents", ["require", "exports", "src/common/Error", "src/common/PlatformEvent"], function (require, exports, Error_3, PlatformEvent_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Base event class for all Connection events
+     *
+     * @export
+     * @class ConnectionEvent
+     * @extends {PlatformEvent}
+     */
     var ConnectionEvent = (function (_super) {
         __extends(ConnectionEvent, _super);
+        /**
+         * Creates an instance of ConnectionEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {EventType} [eventType=EventType.Info] The optional event type of the event.
+         *
+         * @memberof ConnectionEvent
+         */
         function ConnectionEvent(connectionId, eventType) {
             if (eventType === void 0) { eventType = PlatformEvent_2.EventType.Info; }
-            var _this = _super.call(this, eventType) || this;
+            var _this = this;
+            if (!connectionId) {
+                throw new Error_3.ArgumentNullError("connectionId");
+            }
+            _this = _super.call(this, eventType) || this;
             _this.connectionId = connectionId;
             return _this;
         }
         Object.defineProperty(ConnectionEvent.prototype, "ConnectionId", {
+            /**
+             * Unique id specific to the connection under use.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionEvent
+             */
             get: function () {
                 return this.connectionId;
             },
@@ -332,8 +644,24 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
         return ConnectionEvent;
     }(PlatformEvent_2.PlatformEvent));
     exports.ConnectionEvent = ConnectionEvent;
+    /**
+     * Event emitted just prior to eatablishing a connection to the service.
+     *
+     * @export
+     * @class ConnectionStartEvent
+     * @extends {ConnectionEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var ConnectionStartEvent = (function (_super) {
         __extends(ConnectionStartEvent, _super);
+        /**
+         * Creates an instance of ConnectionStartEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {string} uri The connection url
+         * @param {IStringDictionary<string>} [headers] The connection headers
+         *
+         * @memberof ConnectionStartEvent
+         */
         function ConnectionStartEvent(connectionId, uri, headers) {
             var _this = _super.call(this, connectionId) || this;
             _this.uri = uri;
@@ -341,6 +669,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             return _this;
         }
         Object.defineProperty(ConnectionStartEvent.prototype, "Uri", {
+            /**
+             * The connection url
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionStartEvent
+             */
             get: function () {
                 return this.uri;
             },
@@ -348,6 +683,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             configurable: true
         });
         Object.defineProperty(ConnectionStartEvent.prototype, "Headers", {
+            /**
+             * The connection headers
+             *
+             * @readonly
+             * @type {IStringDictionary<string>}
+             * @memberof ConnectionStartEvent
+             */
             get: function () {
                 return this.headers;
             },
@@ -357,16 +699,47 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
         return ConnectionStartEvent;
     }(ConnectionEvent));
     exports.ConnectionStartEvent = ConnectionStartEvent;
+    /**
+     * Event emitted once the connection is established.
+     *
+     * @export
+     * @class ConnectionEstablishedEvent
+     * @extends {ConnectionEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var ConnectionEstablishedEvent = (function (_super) {
         __extends(ConnectionEstablishedEvent, _super);
+        /**
+         * Creates an instance of ConnectionEstablishedEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {IStringDictionary<string>} [metadata]
+         *
+         * @memberof ConnectionEstablishedEvent
+         */
         function ConnectionEstablishedEvent(connectionId, metadata) {
             return _super.call(this, connectionId) || this;
         }
         return ConnectionEstablishedEvent;
     }(ConnectionEvent));
     exports.ConnectionEstablishedEvent = ConnectionEstablishedEvent;
+    /**
+     * Event emitted once the connection is closed
+     *
+     * @export
+     * @class ConnectionClosedEvent
+     * @extends {ConnectionEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var ConnectionClosedEvent = (function (_super) {
         __extends(ConnectionClosedEvent, _super);
+        /**
+         * Creates an instance of ConnectionClosedEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {number} statusCode The connection close status code.
+         * @param {string} reason The connection close reason.
+         *
+         * @memberof ConnectionClosedEvent
+         */
         function ConnectionClosedEvent(connectionId, statusCode, reason) {
             var _this = _super.call(this, connectionId, PlatformEvent_2.EventType.Warning) || this;
             _this.reason = reason;
@@ -374,6 +747,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             return _this;
         }
         Object.defineProperty(ConnectionClosedEvent.prototype, "Reason", {
+            /**
+             * The connection close reason.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionClosedEvent
+             */
             get: function () {
                 return this.reason;
             },
@@ -381,6 +761,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             configurable: true
         });
         Object.defineProperty(ConnectionClosedEvent.prototype, "StatusCode", {
+            /**
+             * The connection close status code.
+             *
+             * @readonly
+             * @type {number}
+             * @memberof ConnectionClosedEvent
+             */
             get: function () {
                 return this.statusCode;
             },
@@ -390,8 +777,24 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
         return ConnectionClosedEvent;
     }(ConnectionEvent));
     exports.ConnectionClosedEvent = ConnectionClosedEvent;
+    /**
+     * The event emitted if there is an error establishing the connection to the service.
+     *
+     * @export
+     * @class ConnectionEstablishErrorEvent
+     * @extends {ConnectionEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var ConnectionEstablishErrorEvent = (function (_super) {
         __extends(ConnectionEstablishErrorEvent, _super);
+        /**
+         * Creates an instance of ConnectionEstablishErrorEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {number} statuscode The connection establish error status code
+         * @param {string} reason The connection establish error reason
+         *
+         * @memberof ConnectionEstablishErrorEvent
+         */
         function ConnectionEstablishErrorEvent(connectionId, statuscode, reason) {
             var _this = _super.call(this, connectionId, PlatformEvent_2.EventType.Error) || this;
             _this.statusCode = statuscode;
@@ -399,6 +802,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             return _this;
         }
         Object.defineProperty(ConnectionEstablishErrorEvent.prototype, "Reason", {
+            /**
+             *  The connection establish error reason
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionEstablishErrorEvent
+             */
             get: function () {
                 return this.reason;
             },
@@ -406,6 +816,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             configurable: true
         });
         Object.defineProperty(ConnectionEstablishErrorEvent.prototype, "StatusCode", {
+            /**
+             *  The connection establish error status code
+             *
+             * @readonly
+             * @type {number}
+             * @memberof ConnectionEstablishErrorEvent
+             */
             get: function () {
                 return this.statusCode;
             },
@@ -415,8 +832,24 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
         return ConnectionEstablishErrorEvent;
     }(ConnectionEvent));
     exports.ConnectionEstablishErrorEvent = ConnectionEstablishErrorEvent;
+    /**
+     * The event emitted on receving a message over the connection.
+     *
+     * @export
+     * @class ConnectionMessageReceivedEvent
+     * @extends {ConnectionEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var ConnectionMessageReceivedEvent = (function (_super) {
         __extends(ConnectionMessageReceivedEvent, _super);
+        /**
+         * Creates an instance of ConnectionMessageReceivedEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {string} networkReceivedTimeISO The time at which the message is received over the network.
+         * @param {ConnectionMessage} message The message payload received.
+         *
+         * @memberof ConnectionMessageReceivedEvent
+         */
         function ConnectionMessageReceivedEvent(connectionId, networkReceivedTimeISO, message) {
             var _this = _super.call(this, connectionId) || this;
             _this.networkReceivedTime = networkReceivedTimeISO;
@@ -424,6 +857,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             return _this;
         }
         Object.defineProperty(ConnectionMessageReceivedEvent.prototype, "NetworkReceivedTime", {
+            /**
+             * The time at which the message is received over the network.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionMessageReceivedEvent
+             */
             get: function () {
                 return this.networkReceivedTime;
             },
@@ -431,6 +871,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             configurable: true
         });
         Object.defineProperty(ConnectionMessageReceivedEvent.prototype, "Message", {
+            /**
+             * The message payload received.
+             *
+             * @readonly
+             * @type {ConnectionMessage}
+             * @memberof ConnectionMessageReceivedEvent
+             */
             get: function () {
                 return this.message;
             },
@@ -440,8 +887,24 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
         return ConnectionMessageReceivedEvent;
     }(ConnectionEvent));
     exports.ConnectionMessageReceivedEvent = ConnectionMessageReceivedEvent;
+    /**
+     * The event emitted on sending a message over the connection.
+     *
+     * @export
+     * @class ConnectionMessageSentEvent
+     * @extends {ConnectionEvent}
+     */
+    // tslint:disable-next-line:max-classes-per-file
     var ConnectionMessageSentEvent = (function (_super) {
         __extends(ConnectionMessageSentEvent, _super);
+        /**
+         * Creates an instance of ConnectionMessageSentEvent.
+         * @param {string} connectionId Unique id specific to the connection under use.
+         * @param {string} networkSentTimeISO The time at which the message is sent over the network.
+         * @param {ConnectionMessage} message The message payload sent.
+         *
+         * @memberof ConnectionMessageSentEvent
+         */
         function ConnectionMessageSentEvent(connectionId, networkSentTimeISO, message) {
             var _this = _super.call(this, connectionId) || this;
             _this.networkSentTime = networkSentTimeISO;
@@ -449,6 +912,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             return _this;
         }
         Object.defineProperty(ConnectionMessageSentEvent.prototype, "NetworkSentTime", {
+            /**
+             * The time at which the message is sent over the network.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionMessageSentEvent
+             */
             get: function () {
                 return this.networkSentTime;
             },
@@ -456,6 +926,13 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
             configurable: true
         });
         Object.defineProperty(ConnectionMessageSentEvent.prototype, "Message", {
+            /**
+             * The message payload sent.
+             *
+             * @readonly
+             * @type {ConnectionMessage}
+             * @memberof ConnectionMessageSentEvent
+             */
             get: function () {
                 return this.message;
             },
@@ -469,12 +946,32 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
 define("src/common/ConnectionOpenResponse", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * The connection open response
+     *
+     * @export
+     * @class ConnectionOpenResponse
+     */
     var ConnectionOpenResponse = (function () {
+        /**
+         * Creates an instance of ConnectionOpenResponse.
+         * @param {number} statusCode The connection open response status code.
+         * @param {string} reason The connection open response reason.
+         *
+         * @memberof ConnectionOpenResponse
+         */
         function ConnectionOpenResponse(statusCode, reason) {
             this.statusCode = statusCode;
             this.reason = reason;
         }
         Object.defineProperty(ConnectionOpenResponse.prototype, "StatusCode", {
+            /**
+             * The connection open response status code.
+             *
+             * @readonly
+             * @type {number}
+             * @memberof ConnectionOpenResponse
+             */
             get: function () {
                 return this.statusCode;
             },
@@ -482,6 +979,13 @@ define("src/common/ConnectionOpenResponse", ["require", "exports"], function (re
             configurable: true
         });
         Object.defineProperty(ConnectionOpenResponse.prototype, "Reason", {
+            /**
+             * The connection open response reason.
+             *
+             * @readonly
+             * @type {string}
+             * @memberof ConnectionOpenResponse
+             */
             get: function () {
                 return this.reason;
             },
@@ -504,17 +1008,37 @@ define("src/common/IEventSource", ["require", "exports"], function (require, exp
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("src/common/EventSource", ["require", "exports", "src/common/Error", "src/common/Guid"], function (require, exports, Error_2, Guid_3) {
+define("src/common/EventSource", ["require", "exports", "src/common/Error", "src/common/Guid"], function (require, exports, Error_4, Guid_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     *
+     *
+     * @export
+     * @class EventSource
+     * @implements {IEventSource<TEvent>}
+     * @template TEvent
+     */
     var EventSource = (function () {
+        /**
+         * Creates an instance of EventSource.
+         * @param {IStringDictionary<string>} [metadata]
+         *
+         * @memberof EventSource
+         */
         function EventSource(metadata) {
             var _this = this;
             this.eventListeners = {};
             this.isDisposed = false;
+            /**
+             *
+             *
+             *
+             * @memberof EventSource
+             */
             this.OnEvent = function (event) {
                 if (_this.IsDisposed()) {
-                    throw (new Error_2.ObjectDisposedError("EventSource"));
+                    throw (new Error_4.ObjectDisposedError("EventSource"));
                 }
                 if (_this.Metadata) {
                     for (var paramName in _this.Metadata) {
@@ -533,6 +1057,12 @@ define("src/common/EventSource", ["require", "exports", "src/common/Error", "src
                     }
                 }
             };
+            /**
+             *
+             *
+             *
+             * @memberof EventSource
+             */
             this.Attach = function (onEventCallback) {
                 var id = Guid_3.CreateNoDashGuid();
                 _this.eventListeners[id] = onEventCallback;
@@ -542,12 +1072,30 @@ define("src/common/EventSource", ["require", "exports", "src/common/Error", "src
                     },
                 };
             };
+            /**
+             *
+             *
+             *
+             * @memberof EventSource
+             */
             this.AttachListener = function (listener) {
                 return _this.Attach(listener.OnEvent);
             };
+            /**
+             *
+             *
+             *
+             * @memberof EventSource
+             */
             this.IsDisposed = function () {
                 return _this.isDisposed;
             };
+            /**
+             *
+             *
+             *
+             * @memberof EventSource
+             */
             this.Dispose = function () {
                 _this.eventListeners = null;
                 _this.isDisposed = true;
@@ -555,6 +1103,13 @@ define("src/common/EventSource", ["require", "exports", "src/common/Error", "src
             this.metadata = metadata;
         }
         Object.defineProperty(EventSource.prototype, "Metadata", {
+            /**
+             *
+             *
+             * @readonly
+             * @type {IStringDictionary<string>}
+             * @memberof EventSource
+             */
             get: function () {
                 return this.metadata;
             },
@@ -565,13 +1120,41 @@ define("src/common/EventSource", ["require", "exports", "src/common/Error", "src
     }());
     exports.EventSource = EventSource;
 });
-define("src/common/Events", ["require", "exports", "src/common/Error", "src/common/EventSource"], function (require, exports, Error_3, EventSource_1) {
+define("src/common/Events", ["require", "exports", "src/common/Error", "src/common/EventSource"], function (require, exports, Error_5, EventSource_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * The global source for emitting and consuming all events.
+     *
+     * @export
+     * @class Events
+     */
     var Events = (function () {
         function Events() {
         }
+        /**
+         * Sets the global event source.
+         *
+         * @static
+         * @param {IEventSource<PlatformEvent>} eventSource The event souce to set.
+         *
+         * @memberof Events
+         */
+        Events.SetEventSource = function (eventSource) {
+            if (!eventSource) {
+                throw new Error_5.ArgumentNullError("eventSource");
+            }
+            Events.instance = eventSource;
+        };
         Object.defineProperty(Events, "Instance", {
+            /**
+             * The event source instance.
+             *
+             * @readonly
+             * @static
+             * @type {IEventSource<PlatformEvent>}
+             * @memberof Events
+             */
             get: function () {
                 return Events.instance;
             },
@@ -581,15 +1164,9 @@ define("src/common/Events", ["require", "exports", "src/common/Error", "src/comm
         return Events;
     }());
     Events.instance = new EventSource_1.EventSource();
-    Events.SetEventSource = function (eventSource) {
-        if (!eventSource) {
-            throw new Error_3.ArgumentNullError("eventSource");
-        }
-        Events.instance = eventSource;
-    };
     exports.Events = Events;
 });
-define("src/common/Promise", ["require", "exports", "src/common/Error"], function (require, exports, Error_4) {
+define("src/common/Promise", ["require", "exports", "src/common/Error"], function (require, exports, Error_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PromiseState;
@@ -651,6 +1228,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
         return PromiseResult;
     }());
     exports.PromiseResult = PromiseResult;
+    // tslint:disable-next-line:max-classes-per-file
     var PromiseResultEventSource = (function () {
         function PromiseResultEventSource() {
             var _this = this;
@@ -668,6 +1246,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
         return PromiseResultEventSource;
     }());
     exports.PromiseResultEventSource = PromiseResultEventSource;
+    // tslint:disable-next-line:max-classes-per-file
     var PromiseHelper = (function () {
         function PromiseHelper() {
         }
@@ -675,7 +1254,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
     }());
     PromiseHelper.WhenAll = function (promises) {
         if (!promises || promises.length === 0) {
-            throw new Error_4.ArgumentNullError("promises");
+            throw new Error_6.ArgumentNullError("promises");
         }
         var deferred = new Deferred();
         var errors = [];
@@ -713,6 +1292,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
         return deferred.Promise();
     };
     exports.PromiseHelper = PromiseHelper;
+    // tslint:disable-next-line:max-classes-per-file
     var Promise = (function () {
         function Promise(sink) {
             var _this = this;
@@ -721,7 +1301,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
             };
             this.ContinueWith = function (continuationCallback) {
                 if (!continuationCallback) {
-                    throw new Error_4.ArgumentNullError("continuationCallback");
+                    throw new Error_6.ArgumentNullError("continuationCallback");
                 }
                 var continuationDeferral = new Deferred();
                 _this.sink.on(function (r) {
@@ -745,7 +1325,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
             };
             this.OnSuccessContinueWith = function (continuationCallback) {
                 if (!continuationCallback) {
-                    throw new Error_4.ArgumentNullError("continuationCallback");
+                    throw new Error_6.ArgumentNullError("continuationCallback");
                 }
                 var continuationDeferral = new Deferred();
                 _this.sink.on(function (r) {
@@ -763,7 +1343,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
             };
             this.ContinueWithPromise = function (continuationCallback) {
                 if (!continuationCallback) {
-                    throw new Error_4.ArgumentNullError("continuationCallback");
+                    throw new Error_6.ArgumentNullError("continuationCallback");
                 }
                 var continuationDeferral = new Deferred();
                 _this.sink.on(function (r) {
@@ -801,7 +1381,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
             };
             this.OnSuccessContinueWithPromise = function (continuationCallback) {
                 if (!continuationCallback) {
-                    throw new Error_4.ArgumentNullError("continuationCallback");
+                    throw new Error_6.ArgumentNullError("continuationCallback");
                 }
                 var continuationDeferral = new Deferred();
                 _this.sink.on(function (r) {
@@ -826,17 +1406,17 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
             };
             this.On = function (successCallback, errorCallback) {
                 if (!successCallback) {
-                    throw new Error_4.ArgumentNullError("successCallback");
+                    throw new Error_6.ArgumentNullError("successCallback");
                 }
                 if (!errorCallback) {
-                    throw new Error_4.ArgumentNullError("errorCallback");
+                    throw new Error_6.ArgumentNullError("errorCallback");
                 }
                 _this.sink.on(successCallback, errorCallback);
                 return _this;
             };
             this.Finally = function (callback) {
                 if (!callback) {
-                    throw new Error_4.ArgumentNullError("callback");
+                    throw new Error_6.ArgumentNullError("callback");
                 }
                 var callbackWrapper = function (_) {
                     callback();
@@ -848,6 +1428,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
         return Promise;
     }());
     exports.Promise = Promise;
+    // tslint:disable-next-line:max-classes-per-file
     var Deferred = (function () {
         function Deferred() {
             var _this = this;
@@ -871,6 +1452,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
         return Deferred;
     }());
     exports.Deferred = Deferred;
+    // tslint:disable-next-line:max-classes-per-file
     var Sink = (function () {
         function Sink() {
             var _this = this;
@@ -966,7 +1548,7 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
     }());
     exports.Sink = Sink;
 });
-define("src/common/List", ["require", "exports", "src/common/Error"], function (require, exports, Error_5) {
+define("src/common/List", ["require", "exports", "src/common/Error"], function (require, exports, Error_7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var List = (function () {
@@ -1144,7 +1726,7 @@ define("src/common/List", ["require", "exports", "src/common/Error"], function (
             };
             this.ThrowIfDisposed = function () {
                 if (_this.IsDisposed()) {
-                    throw new Error_5.ObjectDisposedError("List", _this.disposeReason);
+                    throw new Error_7.ObjectDisposedError("List", _this.disposeReason);
                 }
             };
             this.TriggerSubscriptions = function (subscriptions) {
@@ -1157,6 +1739,7 @@ define("src/common/List", ["require", "exports", "src/common/Error"], function (
                 }
             };
             this.list = [];
+            // copy the list rather than taking as is.
             if (list) {
                 for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
                     var item = list_1[_i];
@@ -1168,7 +1751,7 @@ define("src/common/List", ["require", "exports", "src/common/Error"], function (
     }());
     exports.List = List;
 });
-define("src/common/Queue", ["require", "exports", "src/common/Error", "src/common/List", "src/common/Promise"], function (require, exports, Error_6, List_1, Promise_1) {
+define("src/common/Queue", ["require", "exports", "src/common/Error", "src/common/List", "src/common/Promise"], function (require, exports, Error_8, List_1, Promise_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SubscriberType;
@@ -1201,6 +1784,7 @@ define("src/common/Queue", ["require", "exports", "src/common/Error", "src/commo
                                 _this.list.Add(p.Result().Result);
                             }
                             else {
+                                // TODO: Log as warning.
                             }
                         }
                     }
@@ -1280,12 +1864,12 @@ define("src/common/Queue", ["require", "exports", "src/common/Error", "src/commo
             this.ThrowIfDispose = function () {
                 if (_this.IsDisposed()) {
                     if (_this.disposeReason) {
-                        throw new Error_6.InvalidOperationError(_this.disposeReason);
+                        throw new Error_8.InvalidOperationError(_this.disposeReason);
                     }
-                    throw new Error_6.ObjectDisposedError("Queue");
+                    throw new Error_8.ObjectDisposedError("Queue");
                 }
                 else if (_this.isDisposing) {
-                    throw new Error_6.InvalidOperationError("Queue disposing");
+                    throw new Error_8.InvalidOperationError("Queue disposing");
                 }
             };
             this.list = list ? list : new List_1.List();
@@ -1297,7 +1881,7 @@ define("src/common/Queue", ["require", "exports", "src/common/Error", "src/commo
     }());
     exports.Queue = Queue;
 });
-define("src/common/Stream", ["require", "exports", "src/common/Error", "src/common/Guid", "src/common/Queue"], function (require, exports, Error_7, Guid_4, Queue_1) {
+define("src/common/Stream", ["require", "exports", "src/common/Error", "src/common/Guid", "src/common/Queue"], function (require, exports, Error_9, Guid_4, Queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Stream = (function () {
@@ -1343,13 +1927,14 @@ define("src/common/Stream", ["require", "exports", "src/common/Error", "src/comm
                             _this.readerQueues[readerId].Enqueue(streamChunk);
                         }
                         catch (e) {
+                            // Do nothing
                         }
                     }
                 }
             };
             this.ThrowIfClosed = function () {
                 if (_this.isEnded) {
-                    throw new Error_7.InvalidOperationError("Stream closed");
+                    throw new Error_9.InvalidOperationError("Stream closed");
                 }
             };
             this.id = streamId ? streamId : Guid_4.CreateNoDashGuid();
@@ -1373,13 +1958,14 @@ define("src/common/Stream", ["require", "exports", "src/common/Error", "src/comm
         return Stream;
     }());
     exports.Stream = Stream;
+    // tslint:disable-next-line:max-classes-per-file
     var StreamReader = (function () {
         function StreamReader(streamId, readerQueue, onClose) {
             var _this = this;
             this.isClosed = false;
             this.Read = function () {
                 if (_this.IsClosed) {
-                    throw new Error_7.InvalidOperationError("StreamReader closed");
+                    throw new Error_9.InvalidOperationError("StreamReader closed");
                 }
                 return _this.readerQueue
                     .Dequeue()
@@ -1438,7 +2024,7 @@ define("src/common/IKeyValueStorage", ["require", "exports"], function (require,
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("src/common/InMemoryStorage", ["require", "exports", "src/common/Error"], function (require, exports, Error_8) {
+define("src/common/InMemoryStorage", ["require", "exports", "src/common/Error"], function (require, exports, Error_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var InMemoryStorage = (function () {
@@ -1447,13 +2033,13 @@ define("src/common/InMemoryStorage", ["require", "exports", "src/common/Error"],
             this.store = {};
             this.Get = function (key) {
                 if (!key) {
-                    throw new Error_8.ArgumentNullError("key");
+                    throw new Error_10.ArgumentNullError("key");
                 }
                 return _this.store[key];
             };
             this.GetOrAdd = function (key, valueToAdd) {
                 if (!key) {
-                    throw new Error_8.ArgumentNullError("key");
+                    throw new Error_10.ArgumentNullError("key");
                 }
                 if (_this.store[key] === undefined) {
                     _this.store[key] = valueToAdd;
@@ -1462,13 +2048,13 @@ define("src/common/InMemoryStorage", ["require", "exports", "src/common/Error"],
             };
             this.Set = function (key, value) {
                 if (!key) {
-                    throw new Error_8.ArgumentNullError("key");
+                    throw new Error_10.ArgumentNullError("key");
                 }
                 _this.store[key] = value;
             };
             this.Remove = function (key) {
                 if (!key) {
-                    throw new Error_8.ArgumentNullError("key");
+                    throw new Error_10.ArgumentNullError("key");
                 }
                 if (_this.store[key] !== undefined) {
                     delete _this.store[key];
@@ -1483,20 +2069,20 @@ define("src/common/ITimer", ["require", "exports"], function (require, exports) 
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("src/common/RawWebsocketMessage", ["require", "exports", "src/common/ConnectionMessage", "src/common/Error", "src/common/Guid"], function (require, exports, ConnectionMessage_1, Error_9, Guid_5) {
+define("src/common/RawWebsocketMessage", ["require", "exports", "src/common/ConnectionMessage", "src/common/Error", "src/common/Guid"], function (require, exports, ConnectionMessage_1, Error_11, Guid_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var RawWebsocketMessage = (function () {
         function RawWebsocketMessage(messageType, payload, id) {
             this.payload = null;
             if (!payload) {
-                throw new Error_9.ArgumentNullError("payload");
+                throw new Error_11.ArgumentNullError("payload");
             }
             if (messageType === ConnectionMessage_1.MessageType.Binary && !(payload instanceof ArrayBuffer)) {
-                throw new Error_9.InvalidOperationError("Payload must be ArrayBuffer");
+                throw new Error_11.InvalidOperationError("Payload must be ArrayBuffer");
             }
             if (messageType === ConnectionMessage_1.MessageType.Text && !(typeof (payload) === "string")) {
-                throw new Error_9.InvalidOperationError("Payload must be a string");
+                throw new Error_11.InvalidOperationError("Payload must be a string");
             }
             this.messageType = messageType;
             this.payload = payload;
@@ -1519,7 +2105,7 @@ define("src/common/RawWebsocketMessage", ["require", "exports", "src/common/Conn
         Object.defineProperty(RawWebsocketMessage.prototype, "TextContent", {
             get: function () {
                 if (this.messageType === ConnectionMessage_1.MessageType.Binary) {
-                    throw new Error_9.InvalidOperationError("Not supported for binary message");
+                    throw new Error_11.InvalidOperationError("Not supported for binary message");
                 }
                 return this.payload;
             },
@@ -1529,7 +2115,7 @@ define("src/common/RawWebsocketMessage", ["require", "exports", "src/common/Conn
         Object.defineProperty(RawWebsocketMessage.prototype, "BinaryContent", {
             get: function () {
                 if (this.messageType === ConnectionMessage_1.MessageType.Text) {
-                    throw new Error_9.InvalidOperationError("Not supported for text message");
+                    throw new Error_11.InvalidOperationError("Not supported for text message");
                 }
                 return this.payload;
             },
@@ -1570,19 +2156,33 @@ define("src/common/RiffPcmEncoder", ["require", "exports"], function (require, e
                 var buffer = new ArrayBuffer(44 + audioLength);
                 var bitsPerSample = 16;
                 var bytesPerSample = bitsPerSample / 8;
+                // We dont know ahead of time about the length of audio to stream. So set to 0.
                 var fileLength = 0;
+                // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
                 var view = new DataView(buffer);
+                /* RIFF identifier */
                 _this.SetString(view, 0, "RIFF");
+                /* file length */
                 view.setUint32(4, fileLength, true);
+                /* RIFF type & Format */
                 _this.SetString(view, 8, "WAVEfmt ");
+                /* format chunk length */
                 view.setUint32(16, 16, true);
+                /* sample format (raw) */
                 view.setUint16(20, 1, true);
+                /* channel count */
                 view.setUint16(22, _this.channelCount, true);
+                /* sample rate */
                 view.setUint32(24, _this.desiredSampleRate, true);
+                /* byte rate (sample rate * block align) */
                 view.setUint32(28, _this.desiredSampleRate * _this.channelCount * bytesPerSample, true);
+                /* block align (channel count * bytes per sample) */
                 view.setUint16(32, _this.channelCount * bytesPerSample, true);
+                /* bits per sample */
                 view.setUint16(34, bitsPerSample, true);
+                /* data chunk identifier */
                 _this.SetString(view, 36, "data");
+                /* data chunk length */
                 view.setUint32(40, fileLength, true);
                 _this.FloatTo16BitPCM(view, 44, audioFrame);
                 return buffer;
@@ -1628,7 +2228,7 @@ define("src/common/RiffPcmEncoder", ["require", "exports"], function (require, e
     }());
     exports.RiffPcmEncoder = RiffPcmEncoder;
 });
-define("src/common/Storage", ["require", "exports", "src/common/Error", "src/common/InMemoryStorage"], function (require, exports, Error_10, InMemoryStorage_1) {
+define("src/common/Storage", ["require", "exports", "src/common/Error", "src/common/InMemoryStorage"], function (require, exports, Error_12, InMemoryStorage_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Storage = (function () {
@@ -1654,19 +2254,19 @@ define("src/common/Storage", ["require", "exports", "src/common/Error", "src/com
     Storage.localStorage = new InMemoryStorage_1.InMemoryStorage();
     Storage.SetSessionStorage = function (sessionStorage) {
         if (!sessionStorage) {
-            throw new Error_10.ArgumentNullError("sessionStorage");
+            throw new Error_12.ArgumentNullError("sessionStorage");
         }
         Storage.sessionStorage = sessionStorage;
     };
     Storage.SetLocalStorage = function (localStorage) {
         if (!localStorage) {
-            throw new Error_10.ArgumentNullError("localStorage");
+            throw new Error_12.ArgumentNullError("localStorage");
         }
         Storage.localStorage = localStorage;
     };
     exports.Storage = Storage;
 });
-define("src/common/Exports", ["require", "exports", "src/common/AudioSourceEvents", "src/common/ConnectionEvents", "src/common/ConnectionMessage", "src/common/ConnectionOpenResponse", "src/common/Error", "src/common/Events", "src/common/EventSource", "src/common/Guid", "src/common/IConnection", "src/common/InMemoryStorage", "src/common/List", "src/common/PlatformEvent", "src/common/Promise", "src/common/Queue", "src/common/RawWebsocketMessage", "src/common/RiffPcmEncoder", "src/common/Storage", "src/common/Stream"], function (require, exports, AudioSourceEvents_1, ConnectionEvents_1, ConnectionMessage_2, ConnectionOpenResponse_1, Error_11, Events_1, EventSource_2, Guid_6, IConnection_1, InMemoryStorage_2, List_2, PlatformEvent_3, Promise_2, Queue_2, RawWebsocketMessage_1, RiffPcmEncoder_1, Storage_1, Stream_1) {
+define("src/common/Exports", ["require", "exports", "src/common/AudioSourceEvents", "src/common/ConnectionEvents", "src/common/ConnectionMessage", "src/common/ConnectionOpenResponse", "src/common/Error", "src/common/Events", "src/common/EventSource", "src/common/Guid", "src/common/IConnection", "src/common/InMemoryStorage", "src/common/List", "src/common/PlatformEvent", "src/common/Promise", "src/common/Queue", "src/common/RawWebsocketMessage", "src/common/RiffPcmEncoder", "src/common/Storage", "src/common/Stream"], function (require, exports, AudioSourceEvents_1, ConnectionEvents_1, ConnectionMessage_2, ConnectionOpenResponse_1, Error_13, Events_1, EventSource_2, Guid_6, IConnection_1, InMemoryStorage_2, List_2, PlatformEvent_3, Promise_2, Queue_2, RawWebsocketMessage_1, RiffPcmEncoder_1, Storage_1, Stream_1) {
     "use strict";
     function __export(m) {
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -1676,7 +2276,7 @@ define("src/common/Exports", ["require", "exports", "src/common/AudioSourceEvent
     __export(ConnectionEvents_1);
     __export(ConnectionMessage_2);
     __export(ConnectionOpenResponse_1);
-    __export(Error_11);
+    __export(Error_13);
     __export(Events_1);
     __export(EventSource_2);
     __export(Guid_6);
@@ -1703,18 +2303,23 @@ define("src/common.browser/ConsoleLoggingListener", ["require", "exports", "src/
                     var log = _this.ToString(event);
                     switch (event.EventType) {
                         case Exports_1.EventType.Debug:
+                            // tslint:disable-next-line:no-console
                             console.debug(log);
                             break;
                         case Exports_1.EventType.Info:
+                            // tslint:disable-next-line:no-console
                             console.info(log);
                             break;
                         case Exports_1.EventType.Warning:
+                            // tslint:disable-next-line:no-console
                             console.warn(log);
                             break;
                         case Exports_1.EventType.Error:
+                            // tslint:disable-next-line:no-console
                             console.error(log);
                             break;
                         default:
+                            // tslint:disable-next-line:no-console
                             console.log(log);
                             break;
                     }
@@ -1812,10 +2417,10 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                 if (!window.navigator.getUserMedia) {
                     var errorMsg = "Browser doesnot support getUserMedia.";
                     _this.initializeDeferral.Reject(errorMsg);
-                    _this.OnEvent(new Exports_3.AudioSourceErrorEvent(errorMsg, ""));
+                    _this.OnEvent(new Exports_3.AudioSourceErrorEvent(errorMsg, "")); // mic initialized error - no streamid at this point
                 }
                 else {
-                    _this.OnEvent(new Exports_3.AudioSourceInitializingEvent(_this.id));
+                    _this.OnEvent(new Exports_3.AudioSourceInitializingEvent(_this.id)); // no stream id
                     window.navigator.getUserMedia({ audio: true }, function (mediaStream) {
                         _this.mediaStream = mediaStream;
                         _this.OnEvent(new Exports_3.AudioSourceReadyEvent(_this.id));
@@ -1868,7 +2473,7 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                     }
                 }
                 _this.recorder.ReleaseMediaResources();
-                _this.OnEvent(new Exports_3.AudioSourceOffEvent(_this.id));
+                _this.OnEvent(new Exports_3.AudioSourceOffEvent(_this.id)); // no stream now
                 _this.initializeDeferral = null;
                 return Exports_3.PromiseHelper.FromResult(true);
             };
@@ -1915,7 +2520,7 @@ define("src/common.browser/OpusRecorder", ["require", "exports"], function (requ
             var _this = this;
             this.Record = function (mediaStream, outputStream) {
                 var mediaRecorder = new MediaRecorder(mediaStream, _this.mediaRecorderOptions);
-                var timeslice = 100;
+                var timeslice = 100; // this is in ms - 100 ensures that the chunk doesn't exceed the max size of chunk allowed in WS connection
                 mediaRecorder.ondataavailable = function (dataAvailableEvent) {
                     if (outputStream) {
                         var reader_1 = new FileReader();
@@ -1943,6 +2548,15 @@ define("src/common.browser/OpusRecorder", ["require", "exports"], function (requ
     }());
     exports.OpusRecorder = OpusRecorder;
 });
+/* Declaring this inline to avoid compiler warnings
+declare class MediaRecorder {
+    constructor(mediaStream: MediaStream, options: any);
+
+    public state: string;
+
+    public ondataavailable(dataAvailableEvent: any): void;
+    public stop(): void;
+}*/
 define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1950,9 +2564,12 @@ define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Expo
         function PcmRecorder() {
             var _this = this;
             this.Record = function (mediaStream, outputStream) {
+                // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
                 var audioContext = new AudioContext();
+                // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createMediaStreamSource
                 var mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
                 var desiredSampleRate = 16000;
+                // let compressionRatio = mediaStreamSource.context.sampleRate / desiredSampleRate;
                 var bufferSize = 2048;
                 var isFirstFrameWritten = false;
                 if (desiredSampleRate * 4 <= mediaStreamSource.context.sampleRate) {
@@ -1961,6 +2578,7 @@ define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Expo
                 else if (desiredSampleRate * 2 <= mediaStreamSource.context.sampleRate) {
                     bufferSize = 4096;
                 }
+                // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createScriptProcessor
                 var scriptNode = mediaStreamSource.context.createScriptProcessor(bufferSize, 1, 1);
                 var waveStreamEncoder = new Exports_4.RiffPcmEncoder(mediaStreamSource.context.sampleRate, desiredSampleRate);
                 scriptNode.onaudioprocess = function (audioProcessingEvent) {
@@ -2105,7 +2723,10 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                     _this.connectionEstablishDeferral.Resolve(new Exports_6.ConnectionOpenResponse(200, ""));
                 };
                 _this.websocketClient.onerror = function (e) {
+                    // TODO: Understand what this is error is. Will we still get onClose ?
                     if (_this.connectionState !== Exports_6.ConnectionState.Connecting) {
+                        // TODO: Is this required ?
+                        // this.OnEvent(new ConnectionErrorEvent(errorMsg, connectionId));
                     }
                 };
                 _this.websocketClient.onclose = function (e) {
@@ -2123,6 +2744,7 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                     var networkReceivedTime = new Date().toISOString();
                     if (_this.connectionState === Exports_6.ConnectionState.Connected) {
                         var deferred_1 = new Exports_6.Deferred();
+                        // let id = ++this.idCounter;
                         _this.receivingMessageQueue.EnqueueFromPromise(deferred_1.Promise());
                         if (e.data instanceof Blob) {
                             var fileReader_1 = new FileReader();
@@ -2134,10 +2756,12 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                                     _this.OnEvent(new Exports_6.ConnectionMessageReceivedEvent(_this.connectionId, networkReceivedTime, connectionMessage));
                                     deferred_1.Resolve(connectionMessage);
                                 }, function (error) {
+                                    // TODO: Events for these ?
                                     deferred_1.Reject("Invalid binary message format. Error: " + error);
                                 });
                             };
                             fileReader_1.onerror = function (ev) {
+                                // TODO: Events for these ?
                                 deferred_1.Reject("Binary message parse error");
                             };
                             fileReader_1.readAsArrayBuffer(e.data);
@@ -2150,6 +2774,7 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                                 _this.OnEvent(new Exports_6.ConnectionMessageReceivedEvent(_this.connectionId, networkReceivedTime, connectionMessage));
                                 deferred_1.Resolve(connectionMessage);
                             }, function (error) {
+                                // TODO: Events for these ?
                                 deferred_1.Reject("Invalid text message format. Error: " + error);
                             });
                         }
@@ -2212,6 +2837,8 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                 _this.disconnectDeferral.Resolve(true);
                 _this.receivingMessageQueue.Dispose(reason);
                 _this.receivingMessageQueue.DrainAndDispose(function (pendingReceiveItem) {
+                    // TODO: Events for these ?
+                    // Logger.Instance.OnEvent(new LoggingEvent(LogType.Warning, null, `Failed to process received message. Reason: ${closeReason}, Message: ${JSON.stringify(pendingReceiveItem)}`));
                 }, closeReason);
                 _this.sendMessageQueue.DrainAndDispose(function (pendingSendItem) {
                     pendingSendItem.SendStatusDeferral.Reject(closeReason);
@@ -2230,6 +2857,7 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                         _this.ProcessSendQueue();
                     });
                 }, function (error) {
+                    // do nothing
                 });
             };
             this.OnEvent = function (event) {
@@ -2506,6 +3134,7 @@ define("src/sdk/speech/RecognizerConfig", ["require", "exports"], function (requ
         return RecognizerConfig;
     }());
     exports.RecognizerConfig = RecognizerConfig;
+    // tslint:disable-next-line:max-classes-per-file
     var SpeechConfig = (function () {
         function SpeechConfig(context) {
             var _this = this;
@@ -2535,6 +3164,7 @@ define("src/sdk/speech/RecognizerConfig", ["require", "exports"], function (requ
         return SpeechConfig;
     }());
     exports.SpeechConfig = SpeechConfig;
+    // tslint:disable-next-line:max-classes-per-file
     var Context = (function () {
         function Context(os, device) {
             this.system = new System();
@@ -2565,12 +3195,15 @@ define("src/sdk/speech/RecognizerConfig", ["require", "exports"], function (requ
         return Context;
     }());
     exports.Context = Context;
+    // tslint:disable-next-line:max-classes-per-file
     var System = (function () {
         function System() {
+            // TODO: Tie this with the sdk Version somehow
             this.version = "1.0.00000";
         }
         Object.defineProperty(System.prototype, "Version", {
             get: function () {
+                // Controlled by sdk
                 return this.version;
             },
             enumerable: true,
@@ -2579,6 +3212,7 @@ define("src/sdk/speech/RecognizerConfig", ["require", "exports"], function (requ
         return System;
     }());
     exports.System = System;
+    // tslint:disable-next-line:max-classes-per-file
     var OS = (function () {
         function OS(platform, name, version) {
             this.platform = platform;
@@ -2609,6 +3243,7 @@ define("src/sdk/speech/RecognizerConfig", ["require", "exports"], function (requ
         return OS;
     }());
     exports.OS = OS;
+    // tslint:disable-next-line:max-classes-per-file
     var Device = (function () {
         function Device(manufacturer, model, version) {
             this.manufacturer = manufacturer;
@@ -2686,6 +3321,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return SpeechRecognitionEvent;
     }(Exports_10.PlatformEvent));
     exports.SpeechRecognitionEvent = SpeechRecognitionEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var SpeechRecognitionResultEvent = (function (_super) {
         __extends(SpeechRecognitionResultEvent, _super);
         function SpeechRecognitionResultEvent(eventName, requestId, result) {
@@ -2703,6 +3339,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return SpeechRecognitionResultEvent;
     }(SpeechRecognitionEvent));
     exports.SpeechRecognitionResultEvent = SpeechRecognitionResultEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var RecognitionTriggeredEvent = (function (_super) {
         __extends(RecognitionTriggeredEvent, _super);
         function RecognitionTriggeredEvent(requestId, audioSourceId, audioNodeId) {
@@ -2728,6 +3365,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return RecognitionTriggeredEvent;
     }(SpeechRecognitionEvent));
     exports.RecognitionTriggeredEvent = RecognitionTriggeredEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var ListeningStartedEvent = (function (_super) {
         __extends(ListeningStartedEvent, _super);
         function ListeningStartedEvent(requestId, audioSourceId, audioNodeId) {
@@ -2753,6 +3391,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return ListeningStartedEvent;
     }(SpeechRecognitionEvent));
     exports.ListeningStartedEvent = ListeningStartedEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var ConnectingToServiceEvent = (function (_super) {
         __extends(ConnectingToServiceEvent, _super);
         function ConnectingToServiceEvent(requestId, authFetchEventid, connectionId) {
@@ -2778,6 +3417,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return ConnectingToServiceEvent;
     }(SpeechRecognitionEvent));
     exports.ConnectingToServiceEvent = ConnectingToServiceEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var RecognitionStartedEvent = (function (_super) {
         __extends(RecognitionStartedEvent, _super);
         function RecognitionStartedEvent(requestId, audioSourceId, audioNodeId, authFetchEventId, connectionId) {
@@ -2819,6 +3459,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return RecognitionStartedEvent;
     }(SpeechRecognitionEvent));
     exports.RecognitionStartedEvent = RecognitionStartedEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var SpeechStartDetectedEvent = (function (_super) {
         __extends(SpeechStartDetectedEvent, _super);
         function SpeechStartDetectedEvent(requestId, result) {
@@ -2827,6 +3468,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return SpeechStartDetectedEvent;
     }(SpeechRecognitionResultEvent));
     exports.SpeechStartDetectedEvent = SpeechStartDetectedEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var SpeechHypothesisEvent = (function (_super) {
         __extends(SpeechHypothesisEvent, _super);
         function SpeechHypothesisEvent(requestId, result) {
@@ -2835,6 +3477,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return SpeechHypothesisEvent;
     }(SpeechRecognitionResultEvent));
     exports.SpeechHypothesisEvent = SpeechHypothesisEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var SpeechEndDetectedEvent = (function (_super) {
         __extends(SpeechEndDetectedEvent, _super);
         function SpeechEndDetectedEvent(requestId, result) {
@@ -2843,6 +3486,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return SpeechEndDetectedEvent;
     }(SpeechRecognitionResultEvent));
     exports.SpeechEndDetectedEvent = SpeechEndDetectedEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var SpeechSimplePhraseEvent = (function (_super) {
         __extends(SpeechSimplePhraseEvent, _super);
         function SpeechSimplePhraseEvent(requestId, result) {
@@ -2851,6 +3495,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return SpeechSimplePhraseEvent;
     }(SpeechRecognitionResultEvent));
     exports.SpeechSimplePhraseEvent = SpeechSimplePhraseEvent;
+    // tslint:disable-next-line:max-classes-per-file
     var SpeechDetailedPhraseEvent = (function (_super) {
         __extends(SpeechDetailedPhraseEvent, _super);
         function SpeechDetailedPhraseEvent(requestId, result) {
@@ -2872,6 +3517,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         RecognitionCompletionStatus[RecognitionCompletionStatus["ClientRecognitionActivityTimeout"] = 8] = "ClientRecognitionActivityTimeout";
         RecognitionCompletionStatus[RecognitionCompletionStatus["UnknownError"] = 9] = "UnknownError";
     })(RecognitionCompletionStatus = exports.RecognitionCompletionStatus || (exports.RecognitionCompletionStatus = {}));
+    // tslint:disable-next-line:max-classes-per-file
     var RecognitionEndedEvent = (function (_super) {
         __extends(RecognitionEndedEvent, _super);
         function RecognitionEndedEvent(requestId, audioSourceId, audioNodeId, authFetchEventId, connectionId, serviceTag, status, error) {
@@ -2939,6 +3585,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
 define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports", "src/common/Exports", "src/sdk/speech/RecognitionEvents"], function (require, exports, Exports_11, RecognitionEvents_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // tslint:disable-next-line:max-classes-per-file
     var ServiceTelemetryListener = (function () {
         function ServiceTelemetryListener(requestId, audioSourceId, audioNodeId) {
             var _this = this;
@@ -3044,6 +3691,7 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                     ReceivedMessages: _this.receivedMessages,
                 };
                 var json = JSON.stringify(telemetry);
+                // We dont want to send the same telemetry again. So clean those out.
                 _this.receivedMessages = {};
                 _this.listeningTriggerMetric = null;
                 _this.micMetric = null;
@@ -3054,6 +3702,19 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                 _this.isDisposed = true;
             };
             this.GetConnectionError = function (statusCode) {
+                /*
+                -- Websocket status codes --
+                NormalClosure = 1000,
+                EndpointUnavailable = 1001,
+                ProtocolError = 1002,
+                InvalidMessageType = 1003,
+                Empty = 1005,
+                InvalidPayloadData = 1007,
+                PolicyViolation = 1008,
+                MessageTooBig = 1009,
+                MandatoryExtension = 1010,
+                InternalServerError = 1011
+                */
                 switch (statusCode) {
                     case 400:
                     case 1002:
@@ -3297,6 +3958,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                                 break;
                             case "speech.phrase":
                                 if (_this.recognizerConfig.IsContinuousRecognition) {
+                                    // For continuous recognition telemetry has to be sent for every phrase as per spec.
                                     _this.SendTelemetryData(requestSession.RequestId, connection, requestSession.GetTelemetry());
                                 }
                                 if (_this.recognizerConfig.Format === RecognizerConfig_1.SpeechResultFormat.Simple) {
@@ -3340,6 +4002,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                     .Read()
                     .OnSuccessContinueWithPromise(function (audioStreamChunk) {
                     if (requestSession.IsSpeechEnded) {
+                        // If service already recognized audio end then dont send any more audio
                         return Exports_13.PromiseHelper.FromResult(true);
                     }
                     else if (audioStreamChunk.IsEnd) {
@@ -3382,6 +4045,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
         return Recognizer;
     }());
     exports.Recognizer = Recognizer;
+    // tslint:disable-next-line:max-classes-per-file
     var RequestSession = (function () {
         function RequestSession(audioSourceId, onEventCallback) {
             var _this = this;
@@ -3449,6 +4113,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
             };
             this.Dispose = function (error) {
                 if (!_this.isDisposed) {
+                    // we should have completed by now. If we did not its an unknown error.
                     _this.OnComplete(RecognitionEvents_2.RecognitionCompletionStatus.UnknownError, error);
                     _this.isDisposed = true;
                     for (var _i = 0, _a = _this.detachables; _i < _a.length; _i++) {
@@ -3659,6 +4324,7 @@ define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/c
     }());
     exports.WebsocketMessageFormatter = WebsocketMessageFormatter;
 });
+// IMPORTANT - Dont publish internal modules.
 define("src/sdk/speech/Exports", ["require", "exports", "src/sdk/speech/CognitiveSubscriptionKeyAuthentication", "src/sdk/speech/CognitiveTokenAuthentication", "src/sdk/speech/IAuthentication", "src/sdk/speech/RecognitionEvents", "src/sdk/speech/Recognizer", "src/sdk/speech/RecognizerConfig", "src/sdk/speech/SpeechResults", "src/sdk/speech/WebsocketMessageFormatter"], function (require, exports, CognitiveSubscriptionKeyAuthentication_1, CognitiveTokenAuthentication_1, IAuthentication_3, RecognitionEvents_3, Recognizer_1, RecognizerConfig_2, SpeechResults_1, WebsocketMessageFormatter_1) {
     "use strict";
     function __export(m) {
@@ -3692,7 +4358,7 @@ define("src/sdk/speech.browser/SpeechConnectionFactory", ["require", "exports", 
                         endpoint = _this.Host + _this.DictationRelativeUri;
                         break;
                     default:
-                        endpoint = _this.Host + _this.InteractiveRelativeUri;
+                        endpoint = _this.Host + _this.InteractiveRelativeUri; // default is interactive
                         break;
                 }
                 var queryParams = {
@@ -3779,6 +4445,8 @@ define("Speech.Browser.Sdk", ["require", "exports", "src/common.browser/Exports"
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
     }
     Object.defineProperty(exports, "__esModule", { value: true });
+    // Common.Storage.SetLocalStorage(new Common.Browser.LocalStorage());
+    // Common.Storage.SetSessionStorage(new Common.Browser.SessionStorage());
     Exports_21.Events.Instance.AttachListener(new Exports_20.ConsoleLoggingListener());
     __export(Exports_22);
     __export(Exports_23);

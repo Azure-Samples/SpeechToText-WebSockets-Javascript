@@ -5,30 +5,28 @@ import { IStringDictionary } from "./IDictionary";
 import { IEventListener, IEventSource } from "./IEventSource";
 import { PlatformEvent } from "./PlatformEvent";
 
+/**
+ * EventSource provides ability to emit and consume events in a standard way.
+ *
+ * @export
+ * @class EventSource
+ * @implements {IEventSource<TEvent>}
+ * @template TEvent
+ */
 export class EventSource<TEvent extends PlatformEvent> implements IEventSource<TEvent> {
     private eventListeners: IStringDictionary<(event: TEvent) => void> = {};
-    private metadata: IStringDictionary<string>;
     private isDisposed: boolean = false;
 
-    constructor(metadata?: IStringDictionary<string>) {
-        this.metadata = metadata;
-    }
-
+    /**
+     * Emits an event to the event source that can be consumed by all the attached listeners.
+     *
+     * @param {TEvent} e The event to emit
+     *
+     * @memberof IEventSource
+     */
     public OnEvent = (event: TEvent): void => {
-        if (this.IsDisposed()) {
+        if (this.IsDisposed) {
             throw (new ObjectDisposedError("EventSource"));
-        }
-
-        if (this.Metadata) {
-            for (const paramName in this.Metadata) {
-                if (paramName) {
-                    if (event.Metadata) {
-                        if (!event.Metadata[paramName]) {
-                            event.Metadata[paramName] = this.Metadata[paramName];
-                        }
-                    }
-                }
-            }
         }
 
         for (const eventId in this.eventListeners) {
@@ -38,6 +36,14 @@ export class EventSource<TEvent extends PlatformEvent> implements IEventSource<T
         }
     }
 
+    /**
+     * Attach a callback listener.
+     *
+     * @param {(event: TEvent) => void} onEventCallback Called when an event is emitted on this EventSource.
+     * @returns {IDetachable} Detachable that provides a mechanism to detach the callback listener from the EventSource.
+     *
+     * @memberof IEventSource
+     */
     public Attach = (onEventCallback: (event: TEvent) => void): IDetachable => {
         const id = CreateNoDashGuid();
         this.eventListeners[id] = onEventCallback;
@@ -48,20 +54,36 @@ export class EventSource<TEvent extends PlatformEvent> implements IEventSource<T
         };
     }
 
+    /**
+     * Attach a listener.
+     *
+     * @param {IEventListener<TEvent>} listener
+     * @returns {IDetachable} Detachable that provides a mechanism to detach the listener from the EventSource.
+     *
+     * @memberof IEventSource
+     */
     public AttachListener = (listener: IEventListener<TEvent>): IDetachable => {
         return this.Attach(listener.OnEvent);
     }
 
-    public IsDisposed = (): boolean => {
+    /**
+     * Indicates if the current instance is disposed.
+     *
+     * @readonly
+     * @type {boolean}
+     * @memberof EventSource
+     */
+    public get IsDisposed(): boolean {
         return this.isDisposed;
     }
 
+    /**
+     * Disposes the current instance and performs the cleanup operations associated.
+     *
+     * @memberof EventSource
+     */
     public Dispose = (): void => {
         this.eventListeners = null;
         this.isDisposed = true;
-    }
-
-    public get Metadata(): IStringDictionary<string> {
-        return this.metadata;
     }
 }

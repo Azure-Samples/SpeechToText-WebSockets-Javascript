@@ -41,6 +41,13 @@
       "member-variable-declaration",
       "parameter",
       "property-declaration"
+    ],
+
+    "completed-docs": [
+      "classes",
+      "functions",
+      "methods",
+      "properties"
     ]
   }
 }

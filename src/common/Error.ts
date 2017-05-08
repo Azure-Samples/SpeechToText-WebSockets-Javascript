@@ -16,9 +16,7 @@ export class ArgumentNullError extends Error {
      * @memberOf ArgumentNullError
      */
     public constructor(argumentName: string) {
-        super(argumentName);
-        this.name = "ArgumentNull";
-        this.message = argumentName;
+        super(`ArgumentNull: ${argumentName}`);
     }
 }
 
@@ -40,9 +38,7 @@ export class InvalidOperationError extends Error {
      * @memberOf InvalidOperationError
      */
     public constructor(error: string) {
-        super(error);
-        this.name = "InvalidOperation";
-        this.message = error;
+        super(`InvalidOperation: ${error}`);
     }
 }
 
@@ -65,8 +61,6 @@ export class ObjectDisposedError extends Error {
      * @memberOf ObjectDisposedError
      */
     public constructor(objectName: string, error?: string) {
-        super(error);
-        this.name = objectName + "ObjectDisposed";
-        this.message = error;
+        super(`ObjectDisposed(${objectName}: ${error}`);
     }
 }
