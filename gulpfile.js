@@ -1,10 +1,8 @@
 var gulp = require("gulp");
-var install = require("gulp-install");
-var debug = require('gulp-debug');
 var ts = require('gulp-typescript');
 var sourcemaps = require('gulp-sourcemaps');
 var tslint = require("gulp-tslint");
-var util = require("gulp-util");
+var minify = require('gulp-minify');
 
 gulp.task("build", function() {
     return gulp.src([
@@ -20,8 +18,6 @@ gulp.task("build", function() {
         .pipe(tslint.report({
             summarizeFailureOutput: true
         }))
-        .pipe(install())
-        /*.pipe(debug({ title: 'Processing' }))*/
         .pipe(sourcemaps.init())
         .pipe(ts({
             target: "ES5",
@@ -32,13 +28,6 @@ gulp.task("build", function() {
             out: 'speech.browser.sdk.js'
         }))
         .pipe(sourcemaps.write("."))
+        .pipe(minify())
         .pipe(gulp.dest('distrib'));
 });
-
-function log(message) {
-    if (typeof(msg) === 'object'){
-        util.log(util.colors.blue(JSON.stringify(message)));
-    } else {
-        util.log(util.colors.blue(message))
-    }
-}
