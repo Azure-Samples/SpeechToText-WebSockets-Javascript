@@ -41,12 +41,20 @@ define("src/common/PlatformEvent", ["require", "exports", "src/common/Guid"], fu
         EventType[EventType["Error"] = 3] = "Error";
     })(EventType = exports.EventType || (exports.EventType = {}));
     var PlatformEvent = (function () {
-        function PlatformEvent(eventType) {
+        function PlatformEvent(eventName, eventType) {
+            this.name = eventName;
             this.eventId = Guid_1.CreateNoDashGuid();
             this.eventTime = new Date().toISOString();
             this.eventType = eventType;
             this.metadata = {};
         }
+        Object.defineProperty(PlatformEvent.prototype, "Name", {
+            get: function () {
+                return this.name;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(PlatformEvent.prototype, "EventId", {
             get: function () {
                 return this.eventId;
@@ -84,9 +92,9 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     Object.defineProperty(exports, "__esModule", { value: true });
     var AudioSourceEvent = (function (_super) {
         __extends(AudioSourceEvent, _super);
-        function AudioSourceEvent(audioSourceId, eventType) {
+        function AudioSourceEvent(eventName, audioSourceId, eventType) {
             if (eventType === void 0) { eventType = PlatformEvent_1.EventType.Info; }
-            var _this = _super.call(this, eventType) || this;
+            var _this = _super.call(this, eventName, eventType) || this;
             _this.audioSourceId = audioSourceId;
             return _this;
         }
@@ -103,7 +111,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioSourceInitializingEvent = (function (_super) {
         __extends(AudioSourceInitializingEvent, _super);
         function AudioSourceInitializingEvent(audioSourceId) {
-            return _super.call(this, audioSourceId) || this;
+            return _super.call(this, "AudioSourceInitializingEvent", audioSourceId) || this;
         }
         return AudioSourceInitializingEvent;
     }(AudioSourceEvent));
@@ -111,7 +119,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioSourceReadyEvent = (function (_super) {
         __extends(AudioSourceReadyEvent, _super);
         function AudioSourceReadyEvent(audioSourceId) {
-            return _super.call(this, audioSourceId) || this;
+            return _super.call(this, "AudioSourceReadyEvent", audioSourceId) || this;
         }
         return AudioSourceReadyEvent;
     }(AudioSourceEvent));
@@ -119,7 +127,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioSourceOffEvent = (function (_super) {
         __extends(AudioSourceOffEvent, _super);
         function AudioSourceOffEvent(audioSourceId) {
-            return _super.call(this, audioSourceId) || this;
+            return _super.call(this, "AudioSourceOffEvent", audioSourceId) || this;
         }
         return AudioSourceOffEvent;
     }(AudioSourceEvent));
@@ -127,7 +135,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioSourceErrorEvent = (function (_super) {
         __extends(AudioSourceErrorEvent, _super);
         function AudioSourceErrorEvent(audioSourceId, error) {
-            var _this = _super.call(this, audioSourceId, PlatformEvent_1.EventType.Error) || this;
+            var _this = _super.call(this, "AudioSourceErrorEvent", audioSourceId, PlatformEvent_1.EventType.Error) || this;
             _this.error = error;
             return _this;
         }
@@ -143,8 +151,8 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     exports.AudioSourceErrorEvent = AudioSourceErrorEvent;
     var AudioStreamNodeEvent = (function (_super) {
         __extends(AudioStreamNodeEvent, _super);
-        function AudioStreamNodeEvent(audioSourceId, audioNodeId) {
-            var _this = _super.call(this, audioSourceId) || this;
+        function AudioStreamNodeEvent(eventName, audioSourceId, audioNodeId) {
+            var _this = _super.call(this, eventName, audioSourceId) || this;
             _this.audioNodeId = audioNodeId;
             return _this;
         }
@@ -161,7 +169,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioStreamNodeAttachingEvent = (function (_super) {
         __extends(AudioStreamNodeAttachingEvent, _super);
         function AudioStreamNodeAttachingEvent(audioSourceId, audioNodeId) {
-            return _super.call(this, audioSourceId, audioNodeId) || this;
+            return _super.call(this, "AudioStreamNodeAttachingEvent", audioSourceId, audioNodeId) || this;
         }
         return AudioStreamNodeAttachingEvent;
     }(AudioStreamNodeEvent));
@@ -169,7 +177,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioStreamNodeAttachedEvent = (function (_super) {
         __extends(AudioStreamNodeAttachedEvent, _super);
         function AudioStreamNodeAttachedEvent(audioSourceId, audioNodeId) {
-            return _super.call(this, audioSourceId, audioNodeId) || this;
+            return _super.call(this, "AudioStreamNodeAttachedEvent", audioSourceId, audioNodeId) || this;
         }
         return AudioStreamNodeAttachedEvent;
     }(AudioStreamNodeEvent));
@@ -177,7 +185,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioStreamNodeDetachedEvent = (function (_super) {
         __extends(AudioStreamNodeDetachedEvent, _super);
         function AudioStreamNodeDetachedEvent(audioSourceId, audioNodeId) {
-            return _super.call(this, audioSourceId, audioNodeId) || this;
+            return _super.call(this, "AudioStreamNodeDetachedEvent", audioSourceId, audioNodeId) || this;
         }
         return AudioStreamNodeDetachedEvent;
     }(AudioStreamNodeEvent));
@@ -185,7 +193,7 @@ define("src/common/AudioSourceEvents", ["require", "exports", "src/common/Platfo
     var AudioStreamNodeErrorEvent = (function (_super) {
         __extends(AudioStreamNodeErrorEvent, _super);
         function AudioStreamNodeErrorEvent(audioSourceId, audioNodeId, error) {
-            var _this = _super.call(this, audioSourceId, audioNodeId) || this;
+            var _this = _super.call(this, "AudioStreamNodeErrorEvent", audioSourceId, audioNodeId) || this;
             _this.error = error;
             return _this;
         }
@@ -316,9 +324,9 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
     Object.defineProperty(exports, "__esModule", { value: true });
     var ConnectionEvent = (function (_super) {
         __extends(ConnectionEvent, _super);
-        function ConnectionEvent(connectionId, eventType) {
+        function ConnectionEvent(eventName, connectionId, eventType) {
             if (eventType === void 0) { eventType = PlatformEvent_2.EventType.Info; }
-            var _this = _super.call(this, eventType) || this;
+            var _this = _super.call(this, eventName, eventType) || this;
             _this.connectionId = connectionId;
             return _this;
         }
@@ -335,7 +343,7 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
     var ConnectionStartEvent = (function (_super) {
         __extends(ConnectionStartEvent, _super);
         function ConnectionStartEvent(connectionId, uri, headers) {
-            var _this = _super.call(this, connectionId) || this;
+            var _this = _super.call(this, "ConnectionStartEvent", connectionId) || this;
             _this.uri = uri;
             _this.headers = headers;
             return _this;
@@ -360,7 +368,7 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
     var ConnectionEstablishedEvent = (function (_super) {
         __extends(ConnectionEstablishedEvent, _super);
         function ConnectionEstablishedEvent(connectionId, metadata) {
-            return _super.call(this, connectionId) || this;
+            return _super.call(this, "ConnectionEstablishedEvent", connectionId) || this;
         }
         return ConnectionEstablishedEvent;
     }(ConnectionEvent));
@@ -368,7 +376,7 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
     var ConnectionClosedEvent = (function (_super) {
         __extends(ConnectionClosedEvent, _super);
         function ConnectionClosedEvent(connectionId, statusCode, reason) {
-            var _this = _super.call(this, connectionId, PlatformEvent_2.EventType.Warning) || this;
+            var _this = _super.call(this, "ConnectionClosedEvent", connectionId, PlatformEvent_2.EventType.Warning) || this;
             _this.reason = reason;
             _this.statusCode = statusCode;
             return _this;
@@ -393,7 +401,7 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
     var ConnectionEstablishErrorEvent = (function (_super) {
         __extends(ConnectionEstablishErrorEvent, _super);
         function ConnectionEstablishErrorEvent(connectionId, statuscode, reason) {
-            var _this = _super.call(this, connectionId, PlatformEvent_2.EventType.Error) || this;
+            var _this = _super.call(this, "ConnectionEstablishErrorEvent", connectionId, PlatformEvent_2.EventType.Error) || this;
             _this.statusCode = statuscode;
             _this.reason = reason;
             return _this;
@@ -418,7 +426,7 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
     var ConnectionMessageReceivedEvent = (function (_super) {
         __extends(ConnectionMessageReceivedEvent, _super);
         function ConnectionMessageReceivedEvent(connectionId, networkReceivedTimeISO, message) {
-            var _this = _super.call(this, connectionId) || this;
+            var _this = _super.call(this, "ConnectionMessageReceivedEvent", connectionId) || this;
             _this.networkReceivedTime = networkReceivedTimeISO;
             _this.message = message;
             return _this;
@@ -443,7 +451,7 @@ define("src/common/ConnectionEvents", ["require", "exports", "src/common/Platfor
     var ConnectionMessageSentEvent = (function (_super) {
         __extends(ConnectionMessageSentEvent, _super);
         function ConnectionMessageSentEvent(connectionId, networkSentTimeISO, message) {
-            var _this = _super.call(this, connectionId) || this;
+            var _this = _super.call(this, "ConnectionMessageSentEvent", connectionId) || this;
             _this.networkSentTime = networkSentTimeISO;
             _this.message = message;
             return _this;
@@ -1723,12 +1731,10 @@ define("src/common.browser/ConsoleLoggingListener", ["require", "exports", "src/
             this.ToString = function (event) {
                 var logFragments = [
                     "" + event.EventTime,
+                    "" + event.Name,
                 ];
-                if (event.constructor && event.constructor.name) {
-                    logFragments.push("" + event.constructor.name);
-                }
                 for (var prop in event) {
-                    if (prop && prop !== "EventTime" && prop !== "EventType" && prop !== "EventId" && prop !== "constructor") {
+                    if (prop && event.hasOwnProperty(prop) && prop !== "eventTime" && prop !== "eventType" && prop !== "eventId" && prop !== "name" && prop !== "constructor") {
                         var value = event[prop];
                         var valueToLog = "<NULL>";
                         if (value !== undefined && value !== null) {
@@ -2664,18 +2670,10 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         __extends(SpeechRecognitionEvent, _super);
         function SpeechRecognitionEvent(eventName, requestId, eventType) {
             if (eventType === void 0) { eventType = Exports_10.EventType.Info; }
-            var _this = _super.call(this, eventType) || this;
-            _this.eventName = eventName;
+            var _this = _super.call(this, eventName, eventType) || this;
             _this.requestId = requestId;
             return _this;
         }
-        Object.defineProperty(SpeechRecognitionEvent.prototype, "Name", {
-            get: function () {
-                return this.eventName;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(SpeechRecognitionEvent.prototype, "RequestId", {
             get: function () {
                 return this.requestId;

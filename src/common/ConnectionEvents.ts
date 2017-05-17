@@ -5,8 +5,8 @@ import { EventType, PlatformEvent } from "./PlatformEvent";
 export class ConnectionEvent extends PlatformEvent {
     private connectionId: string;
 
-    constructor(connectionId: string, eventType: EventType = EventType.Info) {
-        super(eventType);
+    constructor(eventName: string, connectionId: string, eventType: EventType = EventType.Info) {
+        super(eventName, eventType);
         this.connectionId = connectionId;
     }
 
@@ -21,7 +21,7 @@ export class ConnectionStartEvent extends ConnectionEvent {
     private headers: IStringDictionary<string>;
 
     constructor(connectionId: string, uri: string, headers?: IStringDictionary<string>) {
-        super(connectionId);
+        super("ConnectionStartEvent", connectionId);
         this.uri = uri;
         this.headers = headers;
     }
@@ -38,7 +38,7 @@ export class ConnectionStartEvent extends ConnectionEvent {
 // tslint:disable-next-line:max-classes-per-file
 export class ConnectionEstablishedEvent extends ConnectionEvent {
     constructor(connectionId: string, metadata?: IStringDictionary<string>) {
-        super(connectionId);
+        super("ConnectionEstablishedEvent", connectionId);
     }
 }
 
@@ -48,7 +48,7 @@ export class ConnectionClosedEvent extends ConnectionEvent {
     private statusCode: number;
 
     constructor(connectionId: string, statusCode: number, reason: string) {
-        super(connectionId, EventType.Warning);
+        super("ConnectionClosedEvent", connectionId, EventType.Warning);
         this.reason = reason;
         this.statusCode = statusCode;
     }
@@ -68,7 +68,7 @@ export class ConnectionEstablishErrorEvent extends ConnectionEvent {
     private reason: string;
 
     constructor(connectionId: string, statuscode: number, reason: string) {
-        super(connectionId, EventType.Error);
+        super("ConnectionEstablishErrorEvent", connectionId, EventType.Error);
         this.statusCode = statuscode;
         this.reason = reason;
     }
@@ -88,7 +88,7 @@ export class ConnectionMessageReceivedEvent extends ConnectionEvent {
     private message: ConnectionMessage;
 
     constructor(connectionId: string, networkReceivedTimeISO: string, message: ConnectionMessage) {
-        super(connectionId);
+        super("ConnectionMessageReceivedEvent", connectionId);
         this.networkReceivedTime = networkReceivedTimeISO;
         this.message = message;
     }
@@ -108,7 +108,7 @@ export class ConnectionMessageSentEvent extends ConnectionEvent {
     private message: ConnectionMessage;
 
     constructor(connectionId: string, networkSentTimeISO: string, message: ConnectionMessage) {
-        super(connectionId);
+        super("ConnectionMessageSentEvent", connectionId);
         this.networkSentTime = networkSentTimeISO;
         this.message = message;
     }

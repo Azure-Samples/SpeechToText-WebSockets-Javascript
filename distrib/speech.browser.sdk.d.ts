@@ -20,11 +20,13 @@ declare module "src/common/PlatformEvent" {
         Error = 3,
     }
     export class PlatformEvent {
+        private name;
         private eventId;
         private eventTime;
         private eventType;
         private metadata;
-        constructor(eventType: EventType);
+        constructor(eventName: string, eventType: EventType);
+        readonly Name: string;
         readonly EventId: string;
         readonly EventTime: string;
         readonly EventType: EventType;
@@ -35,7 +37,7 @@ declare module "src/common/AudioSourceEvents" {
     import { EventType, PlatformEvent } from "src/common/PlatformEvent";
     export class AudioSourceEvent extends PlatformEvent {
         private audioSourceId;
-        constructor(audioSourceId: string, eventType?: EventType);
+        constructor(eventName: string, audioSourceId: string, eventType?: EventType);
         readonly AudioSourceId: string;
     }
     export class AudioSourceInitializingEvent extends AudioSourceEvent {
@@ -54,7 +56,7 @@ declare module "src/common/AudioSourceEvents" {
     }
     export class AudioStreamNodeEvent extends AudioSourceEvent {
         private audioNodeId;
-        constructor(audioSourceId: string, audioNodeId: string);
+        constructor(eventName: string, audioSourceId: string, audioNodeId: string);
         readonly AudioNodeId: string;
     }
     export class AudioStreamNodeAttachingEvent extends AudioStreamNodeEvent {
@@ -109,7 +111,7 @@ declare module "src/common/ConnectionEvents" {
     import { EventType, PlatformEvent } from "src/common/PlatformEvent";
     export class ConnectionEvent extends PlatformEvent {
         private connectionId;
-        constructor(connectionId: string, eventType?: EventType);
+        constructor(eventName: string, connectionId: string, eventType?: EventType);
         readonly ConnectionId: string;
     }
     export class ConnectionStartEvent extends ConnectionEvent {
@@ -868,10 +870,8 @@ declare module "src/sdk/speech/RecognitionEvents" {
     import { EventType, PlatformEvent } from "src/common/Exports";
     import { IDetailedSpeechPhrase, ISimpleSpeechPhrase, ISpeechEndDetectedResult, ISpeechHypothesisResult, ISpeechStartDetectedResult } from "src/sdk/speech/SpeechResults";
     export class SpeechRecognitionEvent extends PlatformEvent {
-        private eventName;
         private requestId;
         constructor(eventName: string, requestId: string, eventType?: EventType);
-        readonly Name: string;
         readonly RequestId: string;
     }
     export class SpeechRecognitionResultEvent<TResult> extends SpeechRecognitionEvent {
