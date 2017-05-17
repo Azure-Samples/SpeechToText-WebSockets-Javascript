@@ -1,9 +1,16 @@
+[![npm version](https://badge.fury.io/js/microsoft-speech-browser-sdk.svg)](https://www.npmjs.com/package/microsoft-speech-browser-sdk)
+
 ## Background
 Microsoft's Speech Service is a cloud-based platform that features the most advanced algorithms available for converting spoken audio to text. The Universal Speech Protocol allows you to integrate speech recognition into your application using the Microsoft Speech Service.
 
-## JavaScipt SDK - Sample Usage
+## Install
+To install [npm package](https://www.npmjs.com/package/microsoft-speech-browser-sdk)
+```
+npm install microsoft-speech-browser-sdk
+```
 
-RequireJs(http://requirejs.org/) is a dependency. Make sure to reference it in your page before using the SDK.
+## JavaScipt SDK - Sample Usage
+[RequireJs](http://requirejs.org/) is a dependency. Make sure to reference it in your page before using the SDK.
 
 ```javascript
 // Resolve the SDK dependecy using RequireJs
@@ -84,6 +91,10 @@ function RecognizerStop(SDK, recognizer) {
 }
 ```
 
-## Contributing
+## Docs
+The sdk is a reference implementation for the speech websocket protocol. Check the below docs for more details.
+[API reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/bingvoicerecognition#websocket)
+[Websocket protocol reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/websocketprotocol)
 
+## Contributing
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
