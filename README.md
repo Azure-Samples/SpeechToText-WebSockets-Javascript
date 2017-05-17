@@ -4,7 +4,7 @@
 Microsoft's Speech Service is a cloud-based platform that features the most advanced algorithms available for converting spoken audio to text. The Universal Speech Protocol allows you to integrate speech recognition into your application using the Microsoft Speech Service.
 
 ## Install
-To install [npm package](https://www.npmjs.com/package/microsoft-speech-browser-sdk)
+To install [npm package](https://www.npmjs.com/package/microsoft-speech-browser-sdk) run
 ```
 npm install microsoft-speech-browser-sdk
 ```
@@ -92,7 +92,7 @@ function RecognizerStop(SDK, recognizer) {
 ```
 
 ## Docs
-The sdk is a reference implementation for the speech websocket protocol. Check the [API reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/bingvoicerecognition#websocket) and [Websocket protocol reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/websocketprotocol) for more details
+The sdk is a reference implementation for the speech websocket protocol. Check the [API reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/bingvoicerecognition#websocket) and [Websocket protocol reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/websocketprotocol) for more details.
 
 ## Contributing
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
