@@ -65,8 +65,15 @@
 
     <!-- The SDK has a dependency on requirejs (http://requirejs.org/). -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
+    <script>
+        // Special handling to let the sample work when loaded directly from file system.
+        if (window.location.protocol == "file:") {
+            document.write('\<script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js">\<\/script>');
+        }
+    </script>
+
     <!-- SDK REFERENCE -->
-    <script src="distrib\speech.browser.sdk-min.js"></script>
+    <script src="../../distrib\speech.browser.sdk-min.js"></script>
 
     <!-- SDK USAGE -->
     <script>
@@ -79,7 +86,7 @@
         
         // Setup the recongizer
         function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
-            let recognizerConfig = new SDK.RecognizerConfig(
+            var recognizerConfig = new SDK.RecognizerConfig(
                 new SDK.SpeechConfig(
                     new SDK.Context(
                         new SDK.OS(navigator.userAgent, "Browser", null),
@@ -89,7 +96,7 @@
                 format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
 
             // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
-            let authentication = new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
+            var authentication = new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
 
             return SDK.CreateRecognizer(recognizerConfig, authentication);
         }
@@ -154,10 +161,10 @@
 
     <!-- Browser Hooks -->
     <script>
-        let startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv, key, languageOptions, formatOptions;
-        let SDK;
-        let recognizer;
-        let previousSubscriptionKey;
+        var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv, key, languageOptions, formatOptions;
+        var SDK;
+        var recognizer;
+        var previousSubscriptionKey;
 
         document.addEventListener("DOMContentLoaded", function () {
             createBtn = document.getElementById("createBtn");

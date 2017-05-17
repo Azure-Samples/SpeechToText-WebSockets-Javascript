@@ -8,18 +8,12 @@ import {
 } from "./SpeechResults";
 
 export class SpeechRecognitionEvent extends PlatformEvent {
-    private eventName: string;
     private requestId: string;
 
     constructor(eventName: string, requestId: string, eventType: EventType = EventType.Info) {
-        super(eventType);
+        super(eventName, eventType);
 
-        this.eventName = eventName;
         this.requestId = requestId;
-    }
-
-    public get Name(): string {
-        return this.eventName;
     }
 
     public get RequestId(): string {

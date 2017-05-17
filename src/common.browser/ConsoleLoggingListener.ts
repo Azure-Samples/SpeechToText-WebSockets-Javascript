@@ -39,14 +39,11 @@ export class ConsoleLoggingListener implements IEventListener<PlatformEvent> {
     private ToString = (event: any): string => {
         const logFragments = [
             `${event.EventTime}`,
+            `${event.Name}`,
         ];
 
-        if (event.constructor && event.constructor.name) {
-            logFragments.push(`${event.constructor.name}`);
-        }
-
         for (const prop in event) {
-            if (prop && prop !== "EventTime" && prop !== "EventType" && prop !== "EventId" && prop !== "constructor") {
+            if (prop && event.hasOwnProperty(prop) && prop !== "eventTime" && prop !== "eventType" && prop !== "eventId" && prop !== "name" && prop !== "constructor") {
                 const value = event[prop];
                 let valueToLog = "<NULL>";
                 if (value !== undefined && value !== null) {
