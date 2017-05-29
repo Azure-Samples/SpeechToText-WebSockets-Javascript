@@ -63,7 +63,7 @@ export class SpeechConfig {
     }
 
     public Serialize = (): string => {
-        return JSON.stringify(this, (key: any, value: any) : any => {
+        return JSON.stringify(this, (key: any, value: any): any => {
         if (value && typeof value === "object") {
             const replacement: any = {};
             for (const k in value) {
