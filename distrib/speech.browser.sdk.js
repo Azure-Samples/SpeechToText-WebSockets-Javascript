@@ -586,15 +586,15 @@ define("src/common/Events", ["require", "exports", "src/common/Error", "src/comm
             enumerable: true,
             configurable: true
         });
+        Events.instance = new EventSource_1.EventSource();
+        Events.SetEventSource = function (eventSource) {
+            if (!eventSource) {
+                throw new Error_3.ArgumentNullError("eventSource");
+            }
+            Events.instance = eventSource;
+        };
         return Events;
     }());
-    Events.instance = new EventSource_1.EventSource();
-    Events.SetEventSource = function (eventSource) {
-        if (!eventSource) {
-            throw new Error_3.ArgumentNullError("eventSource");
-        }
-        Events.instance = eventSource;
-    };
     exports.Events = Events;
 });
 define("src/common/Promise", ["require", "exports", "src/common/Error"], function (require, exports, Error_4) {
@@ -679,47 +679,47 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
     var PromiseHelper = (function () {
         function PromiseHelper() {
         }
+        PromiseHelper.WhenAll = function (promises) {
+            if (!promises || promises.length === 0) {
+                throw new Error_4.ArgumentNullError("promises");
+            }
+            var deferred = new Deferred();
+            var errors = [];
+            var completedPromises = 0;
+            var checkForCompletion = function () {
+                completedPromises++;
+                if (completedPromises === promises.length) {
+                    if (errors.length === 0) {
+                        deferred.Resolve(true);
+                    }
+                    else {
+                        deferred.Reject(errors.join(", "));
+                    }
+                }
+            };
+            for (var _i = 0, promises_1 = promises; _i < promises_1.length; _i++) {
+                var promise = promises_1[_i];
+                promise.On(function (r) {
+                    checkForCompletion();
+                }, function (e) {
+                    errors.push(e);
+                    checkForCompletion();
+                });
+            }
+            return deferred.Promise();
+        };
+        PromiseHelper.FromResult = function (result) {
+            var deferred = new Deferred();
+            deferred.Resolve(result);
+            return deferred.Promise();
+        };
+        PromiseHelper.FromError = function (error) {
+            var deferred = new Deferred();
+            deferred.Reject(error);
+            return deferred.Promise();
+        };
         return PromiseHelper;
     }());
-    PromiseHelper.WhenAll = function (promises) {
-        if (!promises || promises.length === 0) {
-            throw new Error_4.ArgumentNullError("promises");
-        }
-        var deferred = new Deferred();
-        var errors = [];
-        var completedPromises = 0;
-        var checkForCompletion = function () {
-            completedPromises++;
-            if (completedPromises === promises.length) {
-                if (errors.length === 0) {
-                    deferred.Resolve(true);
-                }
-                else {
-                    deferred.Reject(errors.join(", "));
-                }
-            }
-        };
-        for (var _i = 0, promises_1 = promises; _i < promises_1.length; _i++) {
-            var promise = promises_1[_i];
-            promise.On(function (r) {
-                checkForCompletion();
-            }, function (e) {
-                errors.push(e);
-                checkForCompletion();
-            });
-        }
-        return deferred.Promise();
-    };
-    PromiseHelper.FromResult = function (result) {
-        var deferred = new Deferred();
-        deferred.Resolve(result);
-        return deferred.Promise();
-    };
-    PromiseHelper.FromError = function (error) {
-        var deferred = new Deferred();
-        deferred.Reject(error);
-        return deferred.Promise();
-    };
     exports.PromiseHelper = PromiseHelper;
     var Promise = (function () {
         function Promise(sink) {
@@ -1656,22 +1656,22 @@ define("src/common/Storage", ["require", "exports", "src/common/Error", "src/com
             enumerable: true,
             configurable: true
         });
+        Storage.sessionStorage = new InMemoryStorage_1.InMemoryStorage();
+        Storage.localStorage = new InMemoryStorage_1.InMemoryStorage();
+        Storage.SetSessionStorage = function (sessionStorage) {
+            if (!sessionStorage) {
+                throw new Error_10.ArgumentNullError("sessionStorage");
+            }
+            Storage.sessionStorage = sessionStorage;
+        };
+        Storage.SetLocalStorage = function (localStorage) {
+            if (!localStorage) {
+                throw new Error_10.ArgumentNullError("localStorage");
+            }
+            Storage.localStorage = localStorage;
+        };
         return Storage;
     }());
-    Storage.sessionStorage = new InMemoryStorage_1.InMemoryStorage();
-    Storage.localStorage = new InMemoryStorage_1.InMemoryStorage();
-    Storage.SetSessionStorage = function (sessionStorage) {
-        if (!sessionStorage) {
-            throw new Error_10.ArgumentNullError("sessionStorage");
-        }
-        Storage.sessionStorage = sessionStorage;
-    };
-    Storage.SetLocalStorage = function (localStorage) {
-        if (!localStorage) {
-            throw new Error_10.ArgumentNullError("localStorage");
-        }
-        Storage.localStorage = localStorage;
-    };
     exports.Storage = Storage;
 });
 define("src/common/Exports", ["require", "exports", "src/common/AudioSourceEvents", "src/common/ConnectionEvents", "src/common/ConnectionMessage", "src/common/ConnectionOpenResponse", "src/common/Error", "src/common/Events", "src/common/EventSource", "src/common/Guid", "src/common/IConnection", "src/common/InMemoryStorage", "src/common/List", "src/common/PlatformEvent", "src/common/Promise", "src/common/Queue", "src/common/RawWebsocketMessage", "src/common/RiffPcmEncoder", "src/common/Storage", "src/common/Stream"], function (require, exports, AudioSourceEvents_1, ConnectionEvents_1, ConnectionMessage_2, ConnectionOpenResponse_1, Error_11, Events_1, EventSource_2, Guid_6, IConnection_1, InMemoryStorage_2, List_2, PlatformEvent_3, Promise_2, Queue_2, RawWebsocketMessage_1, RiffPcmEncoder_1, Storage_1, Stream_1) {
@@ -2878,6 +2878,8 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
             _this.audioNodeId = audioNodeId;
             _this.connectionId = connectionId;
             _this.authFetchEventId = authFetchEventId;
+            _this.status = status;
+            _this.error = error;
             _this.serviceTag = serviceTag;
             return _this;
         }
@@ -3151,37 +3153,37 @@ define("src/sdk/speech/SpeechConnectionMessage.Internal", ["require", "exports",
             enumerable: true,
             configurable: true
         });
-        return SpeechConnectionMessage;
-    }(Exports_12.ConnectionMessage));
-    SpeechConnectionMessage.FromConnectionMessage = function (message) {
-        var path = null;
-        var requestId = null;
-        var contentType = null;
-        var requestTimestamp = null;
-        var additionalHeaders = {};
-        if (message.Headers) {
-            for (var headerName in message.Headers) {
-                if (headerName) {
-                    if (headerName.toLowerCase() === PathHeaderName.toLowerCase()) {
-                        path = message.Headers[headerName];
-                    }
-                    else if (headerName.toLowerCase() === RequestIdHeaderName.toLowerCase()) {
-                        requestId = message.Headers[headerName];
-                    }
-                    else if (headerName.toLowerCase() === RequestTimestampHeaderName.toLowerCase()) {
-                        requestTimestamp = message.Headers[headerName];
-                    }
-                    else if (headerName.toLowerCase() === ContentTypeHeaderName.toLowerCase()) {
-                        contentType = message.Headers[headerName];
-                    }
-                    else {
-                        additionalHeaders[headerName] = message.Headers[headerName];
+        SpeechConnectionMessage.FromConnectionMessage = function (message) {
+            var path = null;
+            var requestId = null;
+            var contentType = null;
+            var requestTimestamp = null;
+            var additionalHeaders = {};
+            if (message.Headers) {
+                for (var headerName in message.Headers) {
+                    if (headerName) {
+                        if (headerName.toLowerCase() === PathHeaderName.toLowerCase()) {
+                            path = message.Headers[headerName];
+                        }
+                        else if (headerName.toLowerCase() === RequestIdHeaderName.toLowerCase()) {
+                            requestId = message.Headers[headerName];
+                        }
+                        else if (headerName.toLowerCase() === RequestTimestampHeaderName.toLowerCase()) {
+                            requestTimestamp = message.Headers[headerName];
+                        }
+                        else if (headerName.toLowerCase() === ContentTypeHeaderName.toLowerCase()) {
+                            contentType = message.Headers[headerName];
+                        }
+                        else {
+                            additionalHeaders[headerName] = message.Headers[headerName];
+                        }
                     }
                 }
             }
-        }
-        return new SpeechConnectionMessage(message.MessageType, path, requestId, contentType, message.Body, additionalHeaders, message.Id);
-    };
+            return new SpeechConnectionMessage(message.MessageType, path, requestId, contentType, message.Body, additionalHeaders, message.Id);
+        };
+        return SpeechConnectionMessage;
+    }(Exports_12.ConnectionMessage));
     exports.SpeechConnectionMessage = SpeechConnectionMessage;
 });
 define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports", "src/sdk/speech/RecognitionEvents", "src/sdk/speech/RecognizerConfig", "src/sdk/speech/ServiceTelemetryListener.Internal", "src/sdk/speech/SpeechConnectionMessage.Internal"], function (require, exports, Exports_13, RecognitionEvents_2, RecognizerConfig_1, ServiceTelemetryListener_Internal_1, SpeechConnectionMessage_Internal_1) {
