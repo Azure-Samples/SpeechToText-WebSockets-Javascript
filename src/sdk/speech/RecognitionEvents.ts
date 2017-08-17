@@ -203,7 +203,8 @@ export class RecognitionEndedEvent extends SpeechRecognitionEvent {
         this.audioNodeId = audioNodeId;
         this.connectionId = connectionId;
         this.authFetchEventId = authFetchEventId;
-
+        this.status = status;
+        this.error = error;
         this.serviceTag = serviceTag;
     }
 
