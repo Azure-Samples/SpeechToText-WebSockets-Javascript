@@ -203,7 +203,7 @@ export class WebsocketMessageAdapter {
         return this.disconnectDeferral.Promise();
     }
 
-    public get Events(): EventSource<PlatformEvent> {
+    public get Events(): EventSource<ConnectionEvent> {
         return this.connectionEvents;
     }
 

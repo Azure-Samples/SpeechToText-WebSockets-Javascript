@@ -141,7 +141,7 @@ export class MicAudioSource implements IAudioSource {
     }
 
     public get Events(): EventSource<AudioSourceEvent> {
-        return this.events;
+        return this.events as EventSource<AudioSourceEvent>;
     }
 
     private Listen = (audioNodeId: string): Promise<StreamReader<ArrayBuffer>> => {
