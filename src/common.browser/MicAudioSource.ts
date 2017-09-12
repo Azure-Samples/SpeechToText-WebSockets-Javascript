@@ -36,7 +36,7 @@ export class MicAudioSource implements IAudioSource {
 
     private id: string;
 
-    private events: EventSource<PlatformEvent>;
+    private events: EventSource<AudioSourceEvent>;
 
     private initializeDeferral: Deferred<boolean>;
 
@@ -46,7 +46,7 @@ export class MicAudioSource implements IAudioSource {
 
     public constructor(recorder: IRecorder, audioSourceId?: string) {
         this.id = audioSourceId ? audioSourceId : CreateNoDashGuid();
-        this.events = new EventSource();
+        this.events = new EventSource<AudioSourceEvent>();
         this.recorder = recorder;
     }
 
