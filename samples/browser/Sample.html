@@ -64,16 +64,10 @@
     </table>
 
     <!-- The SDK has a dependency on requirejs (http://requirejs.org/). -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
-    <script>
-        // Special handling to let the sample work when loaded directly from file system.
-        if (window.location.protocol == "file:") {
-            document.write('\<script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js">\<\/script>');
-        }
-    </script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
 
     <!-- SDK REFERENCE -->
-    <script src="../../distrib\speech.browser.sdk-min.js"></script>
+    <script src="../../distrib/speech.browser.sdk.js"/></script>
 
     <!-- SDK USAGE -->
     <script>
@@ -199,7 +193,7 @@
             });
 
             stopBtn.addEventListener("click", function () {
-                RecognizerStop(SDK);
+                RecognizerStop(SDK, recognizer);
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
             });
