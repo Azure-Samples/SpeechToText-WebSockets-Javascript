@@ -9,7 +9,7 @@ To install [npm package](https://www.npmjs.com/package/microsoft-speech-browser-
 npm install microsoft-speech-browser-sdk
 ```
 
-## JavaScipt SDK - Sample Usage
+## JavaScript SDK - Sample Usage
 [RequireJs](http://requirejs.org/) is a dependency. Make sure to reference it in your page before using the SDK.
 
 ```javascript
