@@ -620,6 +620,25 @@ declare module "src/common.browser/MicAudioSource" {
         private OnEvent;
     }
 }
+declare module "src/common.browser/FileAudioSource" {
+    import { AudioSourceEvent, EventSource, IAudioSource, IAudioStreamNode, Promise } from "src/common/Exports";
+    export class FileAudioSource implements IAudioSource {
+        private static readonly CHUNK_SIZE;
+        private streams;
+        private id;
+        private events;
+        private file;
+        constructor(file: File, audioSourceId?: string);
+        TurnOn: () => Promise<boolean>;
+        Id: () => string;
+        Attach: (audioNodeId: string) => Promise<IAudioStreamNode>;
+        Detach: (audioNodeId: string) => void;
+        TurnOff: () => Promise<boolean>;
+        readonly Events: EventSource<AudioSourceEvent>;
+        private Upload;
+        private OnEvent;
+    }
+}
 declare module "src/common.browser/OpusRecorder" {
     import { Stream } from "src/common/Exports";
     import { IRecorder } from "src/common.browser/IRecorder";
@@ -664,7 +683,7 @@ declare module "src/common.browser/Timer" {
     }
 }
 declare module "src/common.browser/WebsocketMessageAdapter" {
-    import { ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IWebsocketMessageFormatter, PlatformEvent, Promise } from "src/common/Exports";
+    import { ConnectionEvent, ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IWebsocketMessageFormatter, Promise } from "src/common/Exports";
     export class WebsocketMessageAdapter {
         private connectionState;
         private messageFormatter;
@@ -682,7 +701,7 @@ declare module "src/common.browser/WebsocketMessageAdapter" {
         Send: (message: ConnectionMessage) => Promise<boolean>;
         Read: () => Promise<ConnectionMessage>;
         Close: (reason?: string) => Promise<boolean>;
-        readonly Events: EventSource<PlatformEvent>;
+        readonly Events: EventSource<ConnectionEvent>;
         private SendRawMessage;
         private OnClose;
         private ProcessSendQueue;
@@ -690,7 +709,7 @@ declare module "src/common.browser/WebsocketMessageAdapter" {
     }
 }
 declare module "src/common.browser/WebsocketConnection" {
-    import { ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IConnection, IStringDictionary, IWebsocketMessageFormatter, PlatformEvent, Promise } from "src/common/Exports";
+    import { ConnectionEvent, ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IConnection, IStringDictionary, IWebsocketMessageFormatter, Promise } from "src/common/Exports";
     export class WebsocketConnection implements IConnection {
         private uri;
         private messageFormatter;
@@ -705,7 +724,7 @@ declare module "src/common.browser/WebsocketConnection" {
         Open: () => Promise<ConnectionOpenResponse>;
         Send: (message: ConnectionMessage) => Promise<boolean>;
         Read: () => Promise<ConnectionMessage>;
-        readonly Events: EventSource<PlatformEvent>;
+        readonly Events: EventSource<ConnectionEvent>;
     }
 }
 declare module "src/common.browser/Exports" {
@@ -713,6 +732,7 @@ declare module "src/common.browser/Exports" {
     export * from "src/common.browser/IRecorder";
     export * from "src/common.browser/LocalStorage";
     export * from "src/common.browser/MicAudioSource";
+    export * from "src/common.browser/FileAudioSource";
     export * from "src/common.browser/OpusRecorder";
     export * from "src/common.browser/PCMRecorder";
     export * from "src/common.browser/SessionStorage";
@@ -1055,8 +1075,9 @@ declare module "src/sdk/speech.browser/Recognizer" {
     import { IAuthentication, Recognizer, RecognizerConfig } from "src/sdk/speech/Exports";
     const CreateRecognizer: (recognizerConfig: RecognizerConfig, authentication: IAuthentication) => Recognizer;
     const CreateRecognizerWithPcmRecorder: (recognizerConfig: RecognizerConfig, authentication: IAuthentication) => Recognizer;
+    const CreateRecognizerWithFileAudioSource: (recognizerConfig: RecognizerConfig, authentication: IAuthentication, file: File) => Recognizer;
     const CreateRecognizerWithCustomAudioSource: (recognizerConfig: RecognizerConfig, authentication: IAuthentication, audioSource: IAudioSource) => Recognizer;
-    export { CreateRecognizer, CreateRecognizerWithPcmRecorder, CreateRecognizerWithCustomAudioSource };
+    export { CreateRecognizer, CreateRecognizerWithCustomAudioSource, CreateRecognizerWithFileAudioSource, CreateRecognizerWithPcmRecorder };
 }
 declare module "src/sdk/speech.browser/Exports" {
     export * from "src/sdk/speech.browser/Recognizer";

@@ -1,4 +1,4 @@
-import { MicAudioSource, PcmRecorder } from "../../common.browser/Exports";
+import { FileAudioSource, MicAudioSource, PcmRecorder } from "../../common.browser/Exports";
 import { IAudioSource, Promise, Storage } from "../../common/Exports";
 import { IAuthentication, Recognizer, RecognizerConfig } from "../speech/Exports";
 import { SpeechConnectionFactory } from "./SpeechConnectionFactory";
@@ -16,6 +16,13 @@ const CreateRecognizerWithPcmRecorder = (recognizerConfig: RecognizerConfig, aut
         new MicAudioSource(new PcmRecorder()));
 };
 
+const CreateRecognizerWithFileAudioSource = (recognizerConfig: RecognizerConfig, authentication: IAuthentication, file: File): Recognizer =>  {
+    return CreateRecognizerWithCustomAudioSource(
+        recognizerConfig,
+        authentication,
+        new FileAudioSource(file));
+};
+
 const CreateRecognizerWithCustomAudioSource = (recognizerConfig: RecognizerConfig, authentication: IAuthentication, audioSource: IAudioSource): Recognizer =>  {
     return new Recognizer (
         authentication,
@@ -24,4 +31,4 @@ const CreateRecognizerWithCustomAudioSource = (recognizerConfig: RecognizerConfi
         recognizerConfig);
 };
 
-export { CreateRecognizer, CreateRecognizerWithPcmRecorder,  CreateRecognizerWithCustomAudioSource };
+export { CreateRecognizer, CreateRecognizerWithCustomAudioSource, CreateRecognizerWithFileAudioSource, CreateRecognizerWithPcmRecorder };

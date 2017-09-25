@@ -66,7 +66,7 @@ export class MicAudioSource implements IAudioSource {
         );
 
         if (!window.navigator.getUserMedia) {
-            const errorMsg = "Browser doesnot support getUserMedia.";
+            const errorMsg = "Browser does not support getUserMedia.";
             this.initializeDeferral.Reject(errorMsg);
             this.OnEvent(new AudioSourceErrorEvent(errorMsg, "")); // mic initialized error - no streamid at this point
         } else {
@@ -136,7 +136,7 @@ export class MicAudioSource implements IAudioSource {
         this.recorder.ReleaseMediaResources();
 
         this.OnEvent(new AudioSourceOffEvent(this.id)); // no stream now
-        this.initializeDeferral = null;
+        // this.initializeDeferral = null;
         return PromiseHelper.FromResult(true);
     }
 
@@ -153,9 +153,8 @@ export class MicAudioSource implements IAudioSource {
                 try {
                     this.recorder.Record(this.mediaStream, stream);
                 } catch (error) {
-                    const errorMsg = `Error occured processing the user media stream. ${error}`;
-                    this.initializeDeferral.Reject(errorMsg);
                     this.OnEvent(new AudioStreamNodeErrorEvent(this.id, audioNodeId, error));
+                    throw error;
                 }
 
                 return stream.GetReader();

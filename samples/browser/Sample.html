@@ -32,6 +32,16 @@
             </td>
         </tr>
         <tr>
+            <td align="right">Recognition Mode:</td>
+            <td align="left">
+                <select id="recognitionMode">
+                    <option value="Interactive">Interactive</option>
+                    <option value="Conversation">Conversation</option>
+                    <option value="Dictation">Dictation</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
             <td align="right">Format:</td>
             <td align="left">
                 <select id="formatOptions">
@@ -41,10 +51,20 @@
             </td>
         </tr>
         <tr>
+            <td align="right">Input:</td>
+            <td align="left">
+                <select id="inputSource">
+                    <option value="Mic" selected="selected">Microphone</option>
+                    <option value="File">Audio File</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
             <td></td>
             <td>
                 <button id="startBtn" disabled="disabled">Start</button>
                 <button id="stopBtn" disabled="disabled">Stop</button>
+                <input type="file" id="filePicker" accept=".wav" style="display:none"/>
             </td>
         </tr>
         <tr>
@@ -67,7 +87,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
 
     <!-- SDK REFERENCE -->
-    <script src="../../distrib/speech.browser.sdk-min.js"></script>
+    <script src="../../distrib/speech.browser.sdk.js"></script>
 
     <!-- SDK USAGE -->
     <script>
@@ -80,19 +100,39 @@
         
         // Setup the recongizer
         function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
+            
+            switch (recognitionMode) {
+                case "Interactive" :
+                    recognitionMode = SDK.RecognitionMode.Interactive;    
+                    break;
+                case "Conversation" :
+                    recognitionMode = SDK.RecognitionMode.Conversation;    
+                    break;
+                case "Dictation" :
+                    recognitionMode = SDK.RecognitionMode.Dictation;    
+                    break;
+                default:
+                    recognitionMode = SDK.RecognitionMode.Interactive;
+            }
+
             var recognizerConfig = new SDK.RecognizerConfig(
                 new SDK.SpeechConfig(
                     new SDK.Context(
                         new SDK.OS(navigator.userAgent, "Browser", null),
                         new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
-                recognitionMode, // SDK.RecognitionMode.Interactive  (Options - Interactive/Conversation/Dictation>)
+                recognitionMode,
                 language, // Supported laguages are specific to each recognition mode. Refer to docs.
                 format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
 
             // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
             var authentication = new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
-
-            return SDK.CreateRecognizer(recognizerConfig, authentication);
+        
+            var files = document.getElementById('filePicker').files;
+            if (!files.length) {
+                return SDK.CreateRecognizer(recognizerConfig, authentication);
+            } else {
+                return SDK.CreateRecognizerWithFileAudioSource(recognizerConfig, authentication, files[0]);
+            }
         }
 
         // Start the recognition
@@ -136,6 +176,8 @@
                         UpdateStatus("Idle");
                         console.log(JSON.stringify(event)); // Debug information
                         break;
+                    default:
+                        console.log(JSON.stringify(event)); // Debug information
                 }
             })
             .On(() => {
@@ -155,7 +197,8 @@
 
     <!-- Browser Hooks -->
     <script>
-        var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv, key, languageOptions, formatOptions;
+        var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv;
+        var key, languageOptions, formatOptions, recognitionMode, inputSource, filePicker;
         var SDK;
         var recognizer;
         var previousSubscriptionKey;
@@ -170,26 +213,55 @@
             key = document.getElementById("key");
             languageOptions = document.getElementById("languageOptions");
             formatOptions = document.getElementById("formatOptions");
+            inputSource = document.getElementById("inputSource");
+            recognitionMode = document.getElementById("recognitionMode");
+            filePicker = document.getElementById('filePicker');
 
-            languageOptions.addEventListener("change", function () {
-                Setup();
-            });
-            
-            formatOptions.addEventListener("change", function () {
-                Setup();
-            });
+            languageOptions.addEventListener("change", Setup);
+            formatOptions.addEventListener("change", Setup);
+            recognitionMode.addEventListener("change", Setup);
 
             startBtn.addEventListener("click", function () {
-                if (!recognizer || previousSubscriptionKey != key.value) {
-                    previousSubscriptionKey = key.value;
-                    Setup();
+                if (key.value == "" || key.value == "YOUR_BING_SPEECH_API_KEY") {
+                    alert("Please enter your Bing Speech subscription key!");
+                    return;
                 }
+                if (inputSource.value === "File") {
+                    filePicker.click();
+                } else {
+                    if (!recognizer || previousSubscriptionKey != key.value) {
+                        previousSubscriptionKey = key.value;
+                        Setup();
+                    }
 
+                    hypothesisDiv.innerHTML = "";
+                    phraseDiv.innerHTML = "";
+                    RecognizerStart(SDK, recognizer);
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                }                
+            });
+
+            key.addEventListener("focus", function () {
+               if (key.value == "YOUR_BING_SPEECH_API_KEY") {
+                   key.value = "";
+               }
+            });
+
+            key.addEventListener("focusout", function () {
+               if (key.value == "") {
+                   key.value = "YOUR_BING_SPEECH_API_KEY";
+               }
+            });
+
+            filePicker.addEventListener("change", function () {
+                Setup();
                 hypothesisDiv.innerHTML = "";
                 phraseDiv.innerHTML = "";
                 RecognizerStart(SDK, recognizer);
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
+                filePicker.value = "";
             });
 
             stopBtn.addEventListener("click", function () {
@@ -205,7 +277,7 @@
         });
 
         function Setup() {
-            recognizer = RecognizerSetup(SDK, SDK.RecognitionMode.Interactive, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value);
+            recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value);
         }
 
         function UpdateStatus(status) {
@@ -221,7 +293,7 @@
         }
 
         function UpdateRecognizedPhrase(json) {
-             phraseDiv.innerHTML = json;
+            phraseDiv.innerHTML += json + "\n";
         }
 
         function OnComplete() {
