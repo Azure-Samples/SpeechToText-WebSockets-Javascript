@@ -153,9 +153,8 @@ export class MicAudioSource implements IAudioSource {
                 try {
                     this.recorder.Record(this.mediaStream, stream);
                 } catch (error) {
-                    const errorMsg = `Error occured processing the user media stream. ${error}`;
-                    this.initializeDeferral.Reject(errorMsg);
                     this.OnEvent(new AudioStreamNodeErrorEvent(this.id, audioNodeId, error));
+                    throw error;
                 }
 
                 return stream.GetReader();
