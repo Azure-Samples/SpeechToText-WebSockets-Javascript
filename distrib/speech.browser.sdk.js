@@ -1887,9 +1887,8 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                         _this.recorder.Record(_this.mediaStream, stream);
                     }
                     catch (error) {
-                        var errorMsg = "Error occured processing the user media stream. " + error;
-                        _this.initializeDeferral.Reject(errorMsg);
                         _this.OnEvent(new Exports_3.AudioStreamNodeErrorEvent(_this.id, audioNodeId, error));
+                        throw error;
                     }
                     return stream.GetReader();
                 });
@@ -1956,7 +1955,13 @@ define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Expo
         function PcmRecorder() {
             var _this = this;
             this.Record = function (mediaStream, outputStream) {
-                var audioContext = new AudioContext();
+                var contextCtor = (window.AudioContext)
+                    || (window.webkitAudioContext)
+                    || false;
+                if (!contextCtor) {
+                    throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
+                }
+                var audioContext = new contextCtor();
                 var mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
                 var desiredSampleRate = 16000;
                 var bufferSize = 2048;

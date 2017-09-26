@@ -5,7 +5,15 @@ export class PcmRecorder implements IRecorder {
     private mediaResources: IMediaResources;
     public Record = (mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void => {
         // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
-        const audioContext = new AudioContext();
+        const contextCtor = ((window as any).AudioContext)
+            || ((window as any).webkitAudioContext)
+            || false;
+
+        if (!contextCtor) {
+            throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
+        }
+
+        const audioContext = new contextCtor();
 
         // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createMediaStreamSource
         const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);

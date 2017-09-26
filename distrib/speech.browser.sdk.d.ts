@@ -664,7 +664,7 @@ declare module "src/common.browser/Timer" {
     }
 }
 declare module "src/common.browser/WebsocketMessageAdapter" {
-    import { ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IWebsocketMessageFormatter, PlatformEvent, Promise } from "src/common/Exports";
+    import { ConnectionEvent, ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IWebsocketMessageFormatter, Promise } from "src/common/Exports";
     export class WebsocketMessageAdapter {
         private connectionState;
         private messageFormatter;
@@ -682,7 +682,7 @@ declare module "src/common.browser/WebsocketMessageAdapter" {
         Send: (message: ConnectionMessage) => Promise<boolean>;
         Read: () => Promise<ConnectionMessage>;
         Close: (reason?: string) => Promise<boolean>;
-        readonly Events: EventSource<PlatformEvent>;
+        readonly Events: EventSource<ConnectionEvent>;
         private SendRawMessage;
         private OnClose;
         private ProcessSendQueue;
@@ -690,7 +690,7 @@ declare module "src/common.browser/WebsocketMessageAdapter" {
     }
 }
 declare module "src/common.browser/WebsocketConnection" {
-    import { ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IConnection, IStringDictionary, IWebsocketMessageFormatter, PlatformEvent, Promise } from "src/common/Exports";
+    import { ConnectionEvent, ConnectionMessage, ConnectionOpenResponse, ConnectionState, EventSource, IConnection, IStringDictionary, IWebsocketMessageFormatter, Promise } from "src/common/Exports";
     export class WebsocketConnection implements IConnection {
         private uri;
         private messageFormatter;
@@ -705,7 +705,7 @@ declare module "src/common.browser/WebsocketConnection" {
         Open: () => Promise<ConnectionOpenResponse>;
         Send: (message: ConnectionMessage) => Promise<boolean>;
         Read: () => Promise<ConnectionMessage>;
-        readonly Events: EventSource<PlatformEvent>;
+        readonly Events: EventSource<ConnectionEvent>;
     }
 }
 declare module "src/common.browser/Exports" {
