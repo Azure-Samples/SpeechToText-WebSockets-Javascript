@@ -29,6 +29,7 @@ import {
     RecognitionTriggeredEvent,
     SpeechDetailedPhraseEvent,
     SpeechEndDetectedEvent,
+    SpeechFragmentEvent,
     SpeechHypothesisEvent,
     SpeechRecognitionEvent,
     SpeechRecognitionResultEvent,
@@ -42,7 +43,7 @@ import {
     IDetailedSpeechPhrase,
     ISimpleSpeechPhrase,
     ISpeechEndDetectedResult,
-    ISpeechHypothesisResult,
+    ISpeechFragment,
     ISpeechStartDetectedResult,
 } from "./SpeechResults";
 
@@ -197,6 +198,9 @@ export class Recognizer {
                             break;
                         case "speech.hypothesis":
                             requestSession.OnServiceSpeechHypothesisResponse(JSON.parse(connectionMessage.TextBody));
+                            break;
+                        case "speech.fragment":
+                            requestSession.OnServiceSpeechFragmentResponse(JSON.parse(connectionMessage.TextBody));
                             break;
                         case "speech.enddetected":
                             requestSession.OnServiceSpeechEndDetectedResponse(JSON.parse(connectionMessage.TextBody));
@@ -393,8 +397,12 @@ class RequestSession {
         this.OnEvent(new SpeechStartDetectedEvent(this.RequestId, result));
     }
 
-    public OnServiceSpeechHypothesisResponse = (result: ISpeechHypothesisResult): void => {
+    public OnServiceSpeechHypothesisResponse = (result: ISpeechFragment): void => {
         this.OnEvent(new SpeechHypothesisEvent(this.RequestId, result));
+    }
+
+    public OnServiceSpeechFragmentResponse = (result: ISpeechFragment): void => {
+        this.OnEvent(new SpeechFragmentEvent(this.RequestId, result));
     }
 
     public OnServiceSpeechEndDetectedResponse = (result: ISpeechEndDetectedResult): void => {

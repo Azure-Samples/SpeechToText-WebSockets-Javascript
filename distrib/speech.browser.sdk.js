@@ -2974,6 +2974,14 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
         return SpeechHypothesisEvent;
     }(SpeechRecognitionResultEvent));
     exports.SpeechHypothesisEvent = SpeechHypothesisEvent;
+    var SpeechFragmentEvent = (function (_super) {
+        __extends(SpeechFragmentEvent, _super);
+        function SpeechFragmentEvent(requestId, result) {
+            return _super.call(this, "SpeechFragmentEvent", requestId, result) || this;
+        }
+        return SpeechFragmentEvent;
+    }(SpeechRecognitionResultEvent));
+    exports.SpeechFragmentEvent = SpeechFragmentEvent;
     var SpeechEndDetectedEvent = (function (_super) {
         __extends(SpeechEndDetectedEvent, _super);
         function SpeechEndDetectedEvent(requestId, result) {
@@ -3433,6 +3441,9 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                             case "speech.hypothesis":
                                 requestSession.OnServiceSpeechHypothesisResponse(JSON.parse(connectionMessage.TextBody));
                                 break;
+                            case "speech.fragment":
+                                requestSession.OnServiceSpeechFragmentResponse(JSON.parse(connectionMessage.TextBody));
+                                break;
                             case "speech.enddetected":
                                 requestSession.OnServiceSpeechEndDetectedResponse(JSON.parse(connectionMessage.TextBody));
                                 break;
@@ -3571,6 +3582,9 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
             };
             this.OnServiceSpeechHypothesisResponse = function (result) {
                 _this.OnEvent(new RecognitionEvents_2.SpeechHypothesisEvent(_this.RequestId, result));
+            };
+            this.OnServiceSpeechFragmentResponse = function (result) {
+                _this.OnEvent(new RecognitionEvents_2.SpeechFragmentEvent(_this.RequestId, result));
             };
             this.OnServiceSpeechEndDetectedResponse = function (result) {
                 _this.DetachAudioNode();
@@ -3783,10 +3797,10 @@ define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/c
                         for (var _i = 0, headerMatches_1 = headerMatches; _i < headerMatches_1.length; _i++) {
                             var header = headerMatches_1[_i];
                             if (header) {
-                                var seperatorIndex = header.indexOf(":");
-                                var headerName = seperatorIndex > 0 ? header.substr(0, seperatorIndex).trim().toLowerCase() : header;
-                                var headerValue = seperatorIndex > 0 && header.length > (seperatorIndex + 1) ?
-                                    header.substr(seperatorIndex + 1).trim() :
+                                var separatorIndex = header.indexOf(":");
+                                var headerName = separatorIndex > 0 ? header.substr(0, separatorIndex).trim().toLowerCase() : header;
+                                var headerValue = separatorIndex > 0 && header.length > (separatorIndex + 1) ?
+                                    header.substr(separatorIndex + 1).trim() :
                                     "";
                                 headers[headerName] = headerValue;
                             }

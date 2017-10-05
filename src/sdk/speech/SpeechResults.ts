@@ -12,7 +12,7 @@ export interface ISpeechStartDetectedResult {
     Offset?: number;
 }
 
-export interface ISpeechHypothesisResult {
+export interface ISpeechFragment {
     Text: string;
     Offset?: number;
     Duration?: number;

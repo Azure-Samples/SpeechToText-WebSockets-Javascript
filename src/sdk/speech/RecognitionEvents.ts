@@ -3,7 +3,7 @@ import {
     IDetailedSpeechPhrase,
     ISimpleSpeechPhrase,
     ISpeechEndDetectedResult,
-    ISpeechHypothesisResult,
+    ISpeechFragment,
     ISpeechStartDetectedResult,
 } from "./SpeechResults";
 
@@ -137,9 +137,16 @@ export class SpeechStartDetectedEvent extends SpeechRecognitionResultEvent<ISpee
 }
 
 // tslint:disable-next-line:max-classes-per-file
-export class SpeechHypothesisEvent extends SpeechRecognitionResultEvent<ISpeechHypothesisResult> {
-    constructor(requestId: string, result: ISpeechHypothesisResult) {
+export class SpeechHypothesisEvent extends SpeechRecognitionResultEvent<ISpeechFragment> {
+    constructor(requestId: string, result: ISpeechFragment) {
         super("SpeechHypothesisEvent", requestId, result);
+    }
+}
+
+// tslint:disable-next-line:max-classes-per-file
+export class SpeechFragmentEvent extends SpeechRecognitionResultEvent<ISpeechFragment> {
+    constructor(requestId: string, result: ISpeechFragment) {
+        super("SpeechFragmentEvent", requestId, result);
     }
 }
 

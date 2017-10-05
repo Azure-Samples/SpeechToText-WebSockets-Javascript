@@ -69,17 +69,26 @@
         </tr>
         <tr>
             <td></td>
-            <td>Current hypothesis: <span id="hypothesisDiv"></span></td>
-        </tr>
-        <tr>
-            <td></td>
             <td>
-                <textarea id="phraseDiv" style="width:500px;height:200px"></textarea>
+                <table>
+                    <tr>
+                        <td>Results:</td>
+                        <td>Current hypothesis:</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <textarea id="phraseDiv" style="display: inline-block;width:500px;height:200px"></textarea>
+                        </td>
+                        <td style="vertical-align: top">
+                            <span id="hypothesisDiv" style="width:200px;height:200px;display:block;"></span>
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
         <tr>
-            <td></td>
-            <td>Status: <span id="statusDiv"></span></td>
+            <td align="right">Status:</td>
+            <td align="left"><span id="statusDiv"></span></td>
         </tr>
     </table>
 
@@ -157,7 +166,11 @@
                         console.log(JSON.stringify(event.Result)); // check console for other information in result
                         break;
                     case "SpeechHypothesisEvent" :
-                        UpdateRecognizedHypothesis(event.Result.Text);
+                        UpdateRecognizedHypothesis(event.Result.Text, false);
+                        console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        break;
+                    case "SpeechFragmentEvent" :
+                        UpdateRecognizedHypothesis(event.Result.Text, true);
                         console.log(JSON.stringify(event.Result)); // check console for other information in result
                         break;
                     case "SpeechEndDetectedEvent" :
@@ -284,8 +297,16 @@
             statusDiv.innerHTML = status;
         }
 
-        function UpdateRecognizedHypothesis(text) {
-            hypothesisDiv.innerHTML = text;
+        function UpdateRecognizedHypothesis(text, append) {
+            if (append) 
+                hypothesisDiv.innerHTML += text + " ";
+            else 
+                hypothesisDiv.innerHTML = text;
+
+            var length = hypothesisDiv.innerHTML.length;
+            if (length > 403) {
+                hypothesisDiv.innerHTML = "..." + hypothesisDiv.innerHTML.substr(length-400, length);
+            }
         }
 
         function OnSpeechEndDetected() {
@@ -293,6 +314,7 @@
         }
 
         function UpdateRecognizedPhrase(json) {
+            hypothesisDiv.innerHTML = "";
             phraseDiv.innerHTML += json + "\n";
         }
 

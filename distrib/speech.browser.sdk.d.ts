@@ -861,7 +861,7 @@ declare module "src/sdk/speech/SpeechResults" {
     export interface ISpeechStartDetectedResult {
         Offset?: number;
     }
-    export interface ISpeechHypothesisResult {
+    export interface ISpeechFragment {
         Text: string;
         Offset?: number;
         Duration?: number;
@@ -891,7 +891,7 @@ declare module "src/sdk/speech/SpeechResults" {
 }
 declare module "src/sdk/speech/RecognitionEvents" {
     import { EventType, PlatformEvent } from "src/common/Exports";
-    import { IDetailedSpeechPhrase, ISimpleSpeechPhrase, ISpeechEndDetectedResult, ISpeechHypothesisResult, ISpeechStartDetectedResult } from "src/sdk/speech/SpeechResults";
+    import { IDetailedSpeechPhrase, ISimpleSpeechPhrase, ISpeechEndDetectedResult, ISpeechFragment, ISpeechStartDetectedResult } from "src/sdk/speech/SpeechResults";
     export class SpeechRecognitionEvent extends PlatformEvent {
         private requestId;
         constructor(eventName: string, requestId: string, eventType?: EventType);
@@ -937,8 +937,11 @@ declare module "src/sdk/speech/RecognitionEvents" {
     export class SpeechStartDetectedEvent extends SpeechRecognitionResultEvent<ISpeechStartDetectedResult> {
         constructor(requestId: string, result: ISpeechStartDetectedResult);
     }
-    export class SpeechHypothesisEvent extends SpeechRecognitionResultEvent<ISpeechHypothesisResult> {
-        constructor(requestId: string, result: ISpeechHypothesisResult);
+    export class SpeechHypothesisEvent extends SpeechRecognitionResultEvent<ISpeechFragment> {
+        constructor(requestId: string, result: ISpeechFragment);
+    }
+    export class SpeechFragmentEvent extends SpeechRecognitionResultEvent<ISpeechFragment> {
+        constructor(requestId: string, result: ISpeechFragment);
     }
     export class SpeechEndDetectedEvent extends SpeechRecognitionResultEvent<ISpeechEndDetectedResult> {
         constructor(requestId: string, result: ISpeechEndDetectedResult);

@@ -140,11 +140,11 @@ export class WebsocketMessageFormatter implements IWebsocketMessageFormatter {
             if (headers) {
                 for (const header of headerMatches) {
                     if (header) {
-                        const seperatorIndex = header.indexOf(":");
-                        const headerName = seperatorIndex > 0 ? header.substr(0, seperatorIndex).trim().toLowerCase() : header;
+                        const separatorIndex = header.indexOf(":");
+                        const headerName = separatorIndex > 0 ? header.substr(0, separatorIndex).trim().toLowerCase() : header;
                         const headerValue =
-                            seperatorIndex > 0 && header.length > (seperatorIndex + 1) ?
-                                header.substr(seperatorIndex + 1).trim() :
+                            separatorIndex > 0 && header.length > (separatorIndex + 1) ?
+                                header.substr(separatorIndex + 1).trim() :
                                 "";
 
                         headers[headerName] = headerValue;
