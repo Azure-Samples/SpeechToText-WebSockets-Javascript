@@ -66,7 +66,7 @@ export class MicAudioSource implements IAudioSource {
         );
 
         if (!window.navigator.getUserMedia) {
-            const errorMsg = "Browser doesnot support getUserMedia.";
+            const errorMsg = "Browser does not support getUserMedia.";
             this.initializeDeferral.Reject(errorMsg);
             this.OnEvent(new AudioSourceErrorEvent(errorMsg, "")); // mic initialized error - no streamid at this point
         } else {

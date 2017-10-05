@@ -1816,7 +1816,7 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                     window.navigator.mozGetUserMedia ||
                     window.navigator.msGetUserMedia);
                 if (!window.navigator.getUserMedia) {
-                    var errorMsg = "Browser doesnot support getUserMedia.";
+                    var errorMsg = "Browser does not support getUserMedia.";
                     _this.initializeDeferral.Reject(errorMsg);
                     _this.OnEvent(new Exports_3.AudioSourceErrorEvent(errorMsg, ""));
                 }
@@ -1912,6 +1912,141 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
     }());
     exports.MicAudioSource = MicAudioSource;
 });
+define("src/common.browser/FileAudioSource", ["require", "exports", "src/common/Exports", "src/common.browser/Exports"], function (require, exports, Exports_4, Exports_5) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var FileAudioSource = (function () {
+        function FileAudioSource(file, audioSourceId) {
+            var _this = this;
+            this.streams = {};
+            this.TurnOn = function () {
+                if (typeof FileReader === "undefined") {
+                    var errorMsg = "Browser does not support FileReader.";
+                    _this.OnEvent(new Exports_4.AudioSourceErrorEvent(errorMsg, ""));
+                    return Exports_4.PromiseHelper.FromError(errorMsg);
+                }
+                else if (_this.file.name.lastIndexOf(".wav") !== _this.file.name.length - 4) {
+                    var errorMsg = _this.file.name + " is not supported. Only WAVE files are allowed at the moment.";
+                    _this.OnEvent(new Exports_4.AudioSourceErrorEvent(errorMsg, ""));
+                    return Exports_4.PromiseHelper.FromError(errorMsg);
+                }
+                else if (_this.file.size > FileAudioSource.MAX_SIZE) {
+                    var errorMsg = _this.file.name + " exceeds the maximum allowed file size (" + FileAudioSource.MAX_SIZE + ").";
+                    _this.OnEvent(new Exports_4.AudioSourceErrorEvent(errorMsg, ""));
+                    return Exports_4.PromiseHelper.FromError(errorMsg);
+                }
+                _this.OnEvent(new Exports_4.AudioSourceInitializingEvent(_this.id));
+                _this.OnEvent(new Exports_4.AudioSourceReadyEvent(_this.id));
+                return Exports_4.PromiseHelper.FromResult(true);
+            };
+            this.Id = function () {
+                return _this.id;
+            };
+            this.Attach = function (audioNodeId) {
+                _this.OnEvent(new Exports_4.AudioStreamNodeAttachingEvent(_this.id, audioNodeId));
+                return _this.Upload(audioNodeId).OnSuccessContinueWith(function (streamReader) {
+                    _this.OnEvent(new Exports_4.AudioStreamNodeAttachedEvent(_this.id, audioNodeId));
+                    return {
+                        Detach: function () {
+                            streamReader.Close();
+                            delete _this.streams[audioNodeId];
+                            _this.OnEvent(new Exports_4.AudioStreamNodeDetachedEvent(_this.id, audioNodeId));
+                            _this.TurnOff();
+                        },
+                        Id: function () {
+                            return audioNodeId;
+                        },
+                        Read: function () {
+                            return streamReader.Read();
+                        },
+                    };
+                });
+            };
+            this.Detach = function (audioNodeId) {
+                if (audioNodeId && _this.streams[audioNodeId]) {
+                    _this.streams[audioNodeId].Close();
+                    delete _this.streams[audioNodeId];
+                    _this.OnEvent(new Exports_4.AudioStreamNodeDetachedEvent(_this.id, audioNodeId));
+                }
+            };
+            this.TurnOff = function () {
+                for (var streamId in _this.streams) {
+                    if (streamId) {
+                        var stream = _this.streams[streamId];
+                        if (stream && !stream.IsClosed) {
+                            stream.Close();
+                        }
+                    }
+                }
+                _this.OnEvent(new Exports_4.AudioSourceOffEvent(_this.id));
+                return Exports_4.PromiseHelper.FromResult(true);
+            };
+            this.Upload = function (audioNodeId) {
+                return _this.TurnOn()
+                    .OnSuccessContinueWith(function (_) {
+                    var stream = new Exports_4.Stream(audioNodeId);
+                    _this.streams[audioNodeId] = stream;
+                    var reader = new FileReader();
+                    var startOffset = 0;
+                    var endOffset = FileAudioSource.CHUNK_SIZE;
+                    var lastWriteTimestamp = 0;
+                    var processNextChunk = function (event) {
+                        if (stream.IsClosed) {
+                            return;
+                        }
+                        if (lastWriteTimestamp !== 0) {
+                            var delay = Date.now() - lastWriteTimestamp;
+                            if (delay < FileAudioSource.UPLOAD_INTERVAL) {
+                                new Exports_5.Timer(FileAudioSource.UPLOAD_INTERVAL - delay, processNextChunk).start();
+                                return;
+                            }
+                        }
+                        stream.Write(reader.result);
+                        lastWriteTimestamp = Date.now();
+                        if (endOffset < _this.file.size) {
+                            startOffset = endOffset;
+                            endOffset = Math.min(endOffset + FileAudioSource.CHUNK_SIZE, _this.file.size);
+                            var chunk_1 = _this.file.slice(startOffset, endOffset);
+                            reader.readAsArrayBuffer(chunk_1);
+                        }
+                        else {
+                            stream.Close();
+                        }
+                    };
+                    reader.onload = processNextChunk;
+                    reader.onerror = function (event) {
+                        var errorMsg = "Error occurred while processing '" + _this.file.name + "'. " + event.error;
+                        _this.OnEvent(new Exports_4.AudioStreamNodeErrorEvent(_this.id, audioNodeId, event.error));
+                        throw new Error(errorMsg);
+                    };
+                    var chunk = _this.file.slice(startOffset, endOffset);
+                    reader.readAsArrayBuffer(chunk);
+                    return stream.GetReader();
+                });
+            };
+            this.OnEvent = function (event) {
+                _this.events.OnEvent(event);
+                Exports_4.Events.Instance.OnEvent(event);
+            };
+            this.id = audioSourceId ? audioSourceId : Exports_4.CreateNoDashGuid();
+            this.events = new Exports_4.EventSource();
+            this.file = file;
+        }
+        Object.defineProperty(FileAudioSource.prototype, "Events", {
+            get: function () {
+                return this.events;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FileAudioSource.SAMPLE_RATE = 16000 * 2;
+        FileAudioSource.CHUNK_SIZE = FileAudioSource.SAMPLE_RATE * 2 / 5;
+        FileAudioSource.UPLOAD_INTERVAL = 200;
+        FileAudioSource.MAX_SIZE = FileAudioSource.SAMPLE_RATE * 600 + 44;
+        return FileAudioSource;
+    }());
+    exports.FileAudioSource = FileAudioSource;
+});
 define("src/common.browser/OpusRecorder", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1948,7 +2083,7 @@ define("src/common.browser/OpusRecorder", ["require", "exports"], function (requ
     }());
     exports.OpusRecorder = OpusRecorder;
 });
-define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_4) {
+define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PcmRecorder = (function () {
@@ -1973,7 +2108,7 @@ define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Expo
                     bufferSize = 4096;
                 }
                 var scriptNode = mediaStreamSource.context.createScriptProcessor(bufferSize, 1, 1);
-                var waveStreamEncoder = new Exports_4.RiffPcmEncoder(mediaStreamSource.context.sampleRate, desiredSampleRate);
+                var waveStreamEncoder = new Exports_6.RiffPcmEncoder(mediaStreamSource.context.sampleRate, desiredSampleRate);
                 scriptNode.onaudioprocess = function (audioProcessingEvent) {
                     var monoAudioChunk = audioProcessingEvent.inputBuffer.getChannelData(0);
                     var encodedAudioFrameWithRiffHeader;
@@ -2025,20 +2160,20 @@ define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Expo
     }());
     exports.PcmRecorder = PcmRecorder;
 });
-define("src/common.browser/SessionStorage", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_5) {
+define("src/common.browser/SessionStorage", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SessionStorage = (function () {
         function SessionStorage() {
             this.Get = function (key) {
                 if (!key) {
-                    throw new Exports_5.ArgumentNullError("key");
+                    throw new Exports_7.ArgumentNullError("key");
                 }
                 return sessionStorage.getItem(key);
             };
             this.GetOrAdd = function (key, valueToAdd) {
                 if (!key) {
-                    throw new Exports_5.ArgumentNullError("key");
+                    throw new Exports_7.ArgumentNullError("key");
                 }
                 var value = sessionStorage.getItem(key);
                 if (value === null || value === undefined) {
@@ -2048,13 +2183,13 @@ define("src/common.browser/SessionStorage", ["require", "exports", "src/common/E
             };
             this.Set = function (key, value) {
                 if (!key) {
-                    throw new Exports_5.ArgumentNullError("key");
+                    throw new Exports_7.ArgumentNullError("key");
                 }
                 sessionStorage.setItem(key, value);
             };
             this.Remove = function (key) {
                 if (!key) {
-                    throw new Exports_5.ArgumentNullError("key");
+                    throw new Exports_7.ArgumentNullError("key");
                 }
                 sessionStorage.removeItem(key);
             };
@@ -2089,60 +2224,60 @@ define("src/common.browser/Timer", ["require", "exports"], function (require, ex
     }());
     exports.Timer = Timer;
 });
-define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_6) {
+define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_8) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var WebsocketMessageAdapter = (function () {
         function WebsocketMessageAdapter(uri, connectionId, messageFormatter) {
             var _this = this;
             this.Open = function () {
-                if (_this.connectionState === Exports_6.ConnectionState.Disconnected) {
-                    return Exports_6.PromiseHelper.FromError("Cannot open a connection that is in " + _this.connectionState + " state");
+                if (_this.connectionState === Exports_8.ConnectionState.Disconnected) {
+                    return Exports_8.PromiseHelper.FromError("Cannot open a connection that is in " + _this.connectionState + " state");
                 }
                 if (_this.connectionEstablishDeferral) {
                     return _this.connectionEstablishDeferral.Promise();
                 }
-                _this.connectionEstablishDeferral = new Exports_6.Deferred();
-                _this.connectionState = Exports_6.ConnectionState.Connecting;
+                _this.connectionEstablishDeferral = new Exports_8.Deferred();
+                _this.connectionState = Exports_8.ConnectionState.Connecting;
                 _this.websocketClient = new WebSocket(_this.uri);
-                _this.receivingMessageQueue = new Exports_6.Queue();
-                _this.disconnectDeferral = new Exports_6.Deferred();
-                _this.sendMessageQueue = new Exports_6.Queue();
+                _this.receivingMessageQueue = new Exports_8.Queue();
+                _this.disconnectDeferral = new Exports_8.Deferred();
+                _this.sendMessageQueue = new Exports_8.Queue();
                 _this.ProcessSendQueue();
-                _this.OnEvent(new Exports_6.ConnectionStartEvent(_this.connectionId, _this.uri));
+                _this.OnEvent(new Exports_8.ConnectionStartEvent(_this.connectionId, _this.uri));
                 _this.websocketClient.onopen = function (e) {
-                    _this.connectionState = Exports_6.ConnectionState.Connected;
-                    _this.OnEvent(new Exports_6.ConnectionEstablishedEvent(_this.connectionId));
-                    _this.connectionEstablishDeferral.Resolve(new Exports_6.ConnectionOpenResponse(200, ""));
+                    _this.connectionState = Exports_8.ConnectionState.Connected;
+                    _this.OnEvent(new Exports_8.ConnectionEstablishedEvent(_this.connectionId));
+                    _this.connectionEstablishDeferral.Resolve(new Exports_8.ConnectionOpenResponse(200, ""));
                 };
                 _this.websocketClient.onerror = function (e) {
-                    if (_this.connectionState !== Exports_6.ConnectionState.Connecting) {
+                    if (_this.connectionState !== Exports_8.ConnectionState.Connecting) {
                     }
                 };
                 _this.websocketClient.onclose = function (e) {
-                    if (_this.connectionState === Exports_6.ConnectionState.Connecting) {
-                        _this.connectionState = Exports_6.ConnectionState.Disconnected;
-                        _this.OnEvent(new Exports_6.ConnectionEstablishErrorEvent(_this.connectionId, e.code, e.reason));
-                        _this.connectionEstablishDeferral.Resolve(new Exports_6.ConnectionOpenResponse(e.code, e.reason));
+                    if (_this.connectionState === Exports_8.ConnectionState.Connecting) {
+                        _this.connectionState = Exports_8.ConnectionState.Disconnected;
+                        _this.OnEvent(new Exports_8.ConnectionEstablishErrorEvent(_this.connectionId, e.code, e.reason));
+                        _this.connectionEstablishDeferral.Resolve(new Exports_8.ConnectionOpenResponse(e.code, e.reason));
                     }
                     else {
-                        _this.OnEvent(new Exports_6.ConnectionClosedEvent(_this.connectionId, e.code, e.reason));
+                        _this.OnEvent(new Exports_8.ConnectionClosedEvent(_this.connectionId, e.code, e.reason));
                     }
                     _this.OnClose(e.code, e.reason);
                 };
                 _this.websocketClient.onmessage = function (e) {
                     var networkReceivedTime = new Date().toISOString();
-                    if (_this.connectionState === Exports_6.ConnectionState.Connected) {
-                        var deferred_1 = new Exports_6.Deferred();
+                    if (_this.connectionState === Exports_8.ConnectionState.Connected) {
+                        var deferred_1 = new Exports_8.Deferred();
                         _this.receivingMessageQueue.EnqueueFromPromise(deferred_1.Promise());
                         if (e.data instanceof Blob) {
                             var fileReader_1 = new FileReader();
                             fileReader_1.onload = function (le) {
-                                var rawMessage = new Exports_6.RawWebsocketMessage(Exports_6.MessageType.Binary, fileReader_1.result);
+                                var rawMessage = new Exports_8.RawWebsocketMessage(Exports_8.MessageType.Binary, fileReader_1.result);
                                 _this.messageFormatter
                                     .ToConnectionMessage(rawMessage)
                                     .On(function (connectionMessage) {
-                                    _this.OnEvent(new Exports_6.ConnectionMessageReceivedEvent(_this.connectionId, networkReceivedTime, connectionMessage));
+                                    _this.OnEvent(new Exports_8.ConnectionMessageReceivedEvent(_this.connectionId, networkReceivedTime, connectionMessage));
                                     deferred_1.Resolve(connectionMessage);
                                 }, function (error) {
                                     deferred_1.Reject("Invalid binary message format. Error: " + error);
@@ -2154,11 +2289,11 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                             fileReader_1.readAsArrayBuffer(e.data);
                         }
                         else {
-                            var rawMessage = new Exports_6.RawWebsocketMessage(Exports_6.MessageType.Text, e.data);
+                            var rawMessage = new Exports_8.RawWebsocketMessage(Exports_8.MessageType.Text, e.data);
                             _this.messageFormatter
                                 .ToConnectionMessage(rawMessage)
                                 .On(function (connectionMessage) {
-                                _this.OnEvent(new Exports_6.ConnectionMessageReceivedEvent(_this.connectionId, networkReceivedTime, connectionMessage));
+                                _this.OnEvent(new Exports_8.ConnectionMessageReceivedEvent(_this.connectionId, networkReceivedTime, connectionMessage));
                                 deferred_1.Resolve(connectionMessage);
                             }, function (error) {
                                 deferred_1.Reject("Invalid text message format. Error: " + error);
@@ -2169,11 +2304,11 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                 return _this.connectionEstablishDeferral.Promise();
             };
             this.Send = function (message) {
-                if (_this.connectionState !== Exports_6.ConnectionState.Connected) {
-                    return Exports_6.PromiseHelper.FromError("Cannot send on connection that is in " + _this.connectionState + " state");
+                if (_this.connectionState !== Exports_8.ConnectionState.Connected) {
+                    return Exports_8.PromiseHelper.FromError("Cannot send on connection that is in " + _this.connectionState + " state");
                 }
-                var messageSendStatusDeferral = new Exports_6.Deferred();
-                var messageSendDeferral = new Exports_6.Deferred();
+                var messageSendStatusDeferral = new Exports_8.Deferred();
+                var messageSendDeferral = new Exports_8.Deferred();
                 _this.sendMessageQueue.EnqueueFromPromise(messageSendDeferral.Promise());
                 _this.messageFormatter
                     .FromConnectionMessage(message)
@@ -2189,19 +2324,19 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
                 return messageSendStatusDeferral.Promise();
             };
             this.Read = function () {
-                if (_this.connectionState !== Exports_6.ConnectionState.Connected) {
-                    return Exports_6.PromiseHelper.FromError("Cannot read on connection that is in " + _this.connectionState + " state");
+                if (_this.connectionState !== Exports_8.ConnectionState.Connected) {
+                    return Exports_8.PromiseHelper.FromError("Cannot read on connection that is in " + _this.connectionState + " state");
                 }
                 return _this.receivingMessageQueue.Dequeue();
             };
             this.Close = function (reason) {
                 if (_this.websocketClient) {
-                    if (_this.connectionState !== Exports_6.ConnectionState.Connected) {
+                    if (_this.connectionState !== Exports_8.ConnectionState.Connected) {
                         _this.websocketClient.close(1000, reason ? reason : "Normal closure by client");
                     }
                 }
                 else {
-                    var deferral = new Exports_6.Deferred();
+                    var deferral = new Exports_8.Deferred();
                     deferral.Resolve(true);
                     return deferral.Promise();
                 }
@@ -2209,17 +2344,17 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
             };
             this.SendRawMessage = function (sendItem) {
                 try {
-                    _this.OnEvent(new Exports_6.ConnectionMessageSentEvent(_this.connectionId, new Date().toISOString(), sendItem.Message));
+                    _this.OnEvent(new Exports_8.ConnectionMessageSentEvent(_this.connectionId, new Date().toISOString(), sendItem.Message));
                     _this.websocketClient.send(sendItem.RawWebsocketMessage.Payload);
-                    return Exports_6.PromiseHelper.FromResult(true);
+                    return Exports_8.PromiseHelper.FromResult(true);
                 }
                 catch (e) {
-                    return Exports_6.PromiseHelper.FromError("websocket send error: " + e);
+                    return Exports_8.PromiseHelper.FromError("websocket send error: " + e);
                 }
             };
             this.OnClose = function (code, reason) {
                 var closeReason = "Connection closed. " + code + ": " + reason;
-                _this.connectionState = Exports_6.ConnectionState.Disconnected;
+                _this.connectionState = Exports_8.ConnectionState.Disconnected;
                 _this.disconnectDeferral.Resolve(true);
                 _this.receivingMessageQueue.Dispose(reason);
                 _this.receivingMessageQueue.DrainAndDispose(function (pendingReceiveItem) {
@@ -2245,18 +2380,18 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
             };
             this.OnEvent = function (event) {
                 _this.connectionEvents.OnEvent(event);
-                Exports_6.Events.Instance.OnEvent(event);
+                Exports_8.Events.Instance.OnEvent(event);
             };
             if (!uri) {
-                throw new Exports_6.ArgumentNullError("uri");
+                throw new Exports_8.ArgumentNullError("uri");
             }
             if (!messageFormatter) {
-                throw new Exports_6.ArgumentNullError("messageFormatter");
+                throw new Exports_8.ArgumentNullError("messageFormatter");
             }
-            this.connectionEvents = new Exports_6.EventSource();
+            this.connectionEvents = new Exports_8.EventSource();
             this.connectionId = connectionId;
             this.messageFormatter = messageFormatter;
-            this.connectionState = Exports_6.ConnectionState.None;
+            this.connectionState = Exports_8.ConnectionState.None;
             this.uri = uri;
         }
         Object.defineProperty(WebsocketMessageAdapter.prototype, "State", {
@@ -2277,7 +2412,7 @@ define("src/common.browser/WebsocketMessageAdapter", ["require", "exports", "src
     }());
     exports.WebsocketMessageAdapter = WebsocketMessageAdapter;
 });
-define("src/common.browser/WebsocketConnection", ["require", "exports", "src/common/Exports", "src/common.browser/WebsocketMessageAdapter"], function (require, exports, Exports_7, WebsocketMessageAdapter_1) {
+define("src/common.browser/WebsocketConnection", ["require", "exports", "src/common/Exports", "src/common.browser/WebsocketMessageAdapter"], function (require, exports, Exports_9, WebsocketMessageAdapter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var WebsocketConnection = (function () {
@@ -2306,10 +2441,10 @@ define("src/common.browser/WebsocketConnection", ["require", "exports", "src/com
                 return _this.connectionMessageAdapter.Read();
             };
             if (!uri) {
-                throw new Exports_7.ArgumentNullError("uri");
+                throw new Exports_9.ArgumentNullError("uri");
             }
             if (!messageFormatter) {
-                throw new Exports_7.ArgumentNullError("messageFormatter");
+                throw new Exports_9.ArgumentNullError("messageFormatter");
             }
             this.messageFormatter = messageFormatter;
             var queryParams = "";
@@ -2335,7 +2470,7 @@ define("src/common.browser/WebsocketConnection", ["require", "exports", "src/com
                 }
             }
             this.uri = uri + queryParams;
-            this.id = connectionId ? connectionId : Exports_7.CreateNoDashGuid();
+            this.id = connectionId ? connectionId : Exports_9.CreateNoDashGuid();
             this.connectionMessageAdapter = new WebsocketMessageAdapter_1.WebsocketMessageAdapter(this.uri, this.Id, this.messageFormatter);
         }
         Object.defineProperty(WebsocketConnection.prototype, "Id", {
@@ -2356,7 +2491,7 @@ define("src/common.browser/WebsocketConnection", ["require", "exports", "src/com
     }());
     exports.WebsocketConnection = WebsocketConnection;
 });
-define("src/common.browser/Exports", ["require", "exports", "src/common.browser/ConsoleLoggingListener", "src/common.browser/LocalStorage", "src/common.browser/MicAudioSource", "src/common.browser/OpusRecorder", "src/common.browser/PCMRecorder", "src/common.browser/SessionStorage", "src/common.browser/Timer", "src/common.browser/WebsocketConnection", "src/common.browser/WebsocketMessageAdapter"], function (require, exports, ConsoleLoggingListener_1, LocalStorage_1, MicAudioSource_1, OpusRecorder_1, PCMRecorder_1, SessionStorage_1, Timer_1, WebsocketConnection_1, WebsocketMessageAdapter_2) {
+define("src/common.browser/Exports", ["require", "exports", "src/common.browser/ConsoleLoggingListener", "src/common.browser/LocalStorage", "src/common.browser/MicAudioSource", "src/common.browser/FileAudioSource", "src/common.browser/OpusRecorder", "src/common.browser/PCMRecorder", "src/common.browser/SessionStorage", "src/common.browser/Timer", "src/common.browser/WebsocketConnection", "src/common.browser/WebsocketMessageAdapter"], function (require, exports, ConsoleLoggingListener_1, LocalStorage_1, MicAudioSource_1, FileAudioSource_1, OpusRecorder_1, PCMRecorder_1, SessionStorage_1, Timer_1, WebsocketConnection_1, WebsocketMessageAdapter_2) {
     "use strict";
     function __export(m) {
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -2365,6 +2500,7 @@ define("src/common.browser/Exports", ["require", "exports", "src/common.browser/
     __export(ConsoleLoggingListener_1);
     __export(LocalStorage_1);
     __export(MicAudioSource_1);
+    __export(FileAudioSource_1);
     __export(OpusRecorder_1);
     __export(PCMRecorder_1);
     __export(SessionStorage_1);
@@ -2398,7 +2534,7 @@ define("src/sdk/speech/IAuthentication", ["require", "exports"], function (requi
     }());
     exports.AuthInfo = AuthInfo;
 });
-define("src/sdk/speech/CognitiveSubscriptionKeyAuthentication", ["require", "exports", "src/common/Exports", "src/sdk/speech/IAuthentication"], function (require, exports, Exports_8, IAuthentication_1) {
+define("src/sdk/speech/CognitiveSubscriptionKeyAuthentication", ["require", "exports", "src/common/Exports", "src/sdk/speech/IAuthentication"], function (require, exports, Exports_10, IAuthentication_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AuthHeader = "Ocp-Apim-Subscription-Key";
@@ -2406,13 +2542,13 @@ define("src/sdk/speech/CognitiveSubscriptionKeyAuthentication", ["require", "exp
         function CognitiveSubscriptionKeyAuthentication(subscriptionKey) {
             var _this = this;
             this.Fetch = function (authFetchEventId) {
-                return Exports_8.PromiseHelper.FromResult(_this.authInfo);
+                return Exports_10.PromiseHelper.FromResult(_this.authInfo);
             };
             this.FetchOnExpiry = function (authFetchEventId) {
-                return Exports_8.PromiseHelper.FromResult(_this.authInfo);
+                return Exports_10.PromiseHelper.FromResult(_this.authInfo);
             };
             if (!subscriptionKey) {
-                throw new Exports_8.ArgumentNullError("subscriptionKey");
+                throw new Exports_10.ArgumentNullError("subscriptionKey");
             }
             this.authInfo = new IAuthentication_1.AuthInfo(AuthHeader, subscriptionKey);
         }
@@ -2420,7 +2556,7 @@ define("src/sdk/speech/CognitiveSubscriptionKeyAuthentication", ["require", "exp
     }());
     exports.CognitiveSubscriptionKeyAuthentication = CognitiveSubscriptionKeyAuthentication;
 });
-define("src/sdk/speech/CognitiveTokenAuthentication", ["require", "exports", "src/common/Exports", "src/sdk/speech/IAuthentication"], function (require, exports, Exports_9, IAuthentication_2) {
+define("src/sdk/speech/CognitiveTokenAuthentication", ["require", "exports", "src/common/Exports", "src/sdk/speech/IAuthentication"], function (require, exports, Exports_11, IAuthentication_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AuthHeader = "Authorization";
@@ -2434,10 +2570,10 @@ define("src/sdk/speech/CognitiveTokenAuthentication", ["require", "exports", "sr
                 return _this.fetchOnExpiryCallback(authFetchEventId).OnSuccessContinueWith(function (token) { return new IAuthentication_2.AuthInfo(AuthHeader, token); });
             };
             if (!fetchCallback) {
-                throw new Exports_9.ArgumentNullError("fetchCallback");
+                throw new Exports_11.ArgumentNullError("fetchCallback");
             }
             if (!fetchOnExpiryCallback) {
-                throw new Exports_9.ArgumentNullError("fetchOnExpiryCallback");
+                throw new Exports_11.ArgumentNullError("fetchOnExpiryCallback");
             }
             this.fetchCallback = fetchCallback;
             this.fetchOnExpiryCallback = fetchOnExpiryCallback;
@@ -2668,13 +2804,13 @@ define("src/sdk/speech/SpeechResults", ["require", "exports"], function (require
         RecognitionStatus[RecognitionStatus["EndOfDictation"] = 5] = "EndOfDictation";
     })(RecognitionStatus = exports.RecognitionStatus || (exports.RecognitionStatus = {}));
 });
-define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_10) {
+define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_12) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SpeechRecognitionEvent = (function (_super) {
         __extends(SpeechRecognitionEvent, _super);
         function SpeechRecognitionEvent(eventName, requestId, eventType) {
-            if (eventType === void 0) { eventType = Exports_10.EventType.Info; }
+            if (eventType === void 0) { eventType = Exports_12.EventType.Info; }
             var _this = _super.call(this, eventName, eventType) || this;
             _this.requestId = requestId;
             return _this;
@@ -2687,7 +2823,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
             configurable: true
         });
         return SpeechRecognitionEvent;
-    }(Exports_10.PlatformEvent));
+    }(Exports_12.PlatformEvent));
     exports.SpeechRecognitionEvent = SpeechRecognitionEvent;
     var SpeechRecognitionResultEvent = (function (_super) {
         __extends(SpeechRecognitionResultEvent, _super);
@@ -2878,7 +3014,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
     var RecognitionEndedEvent = (function (_super) {
         __extends(RecognitionEndedEvent, _super);
         function RecognitionEndedEvent(requestId, audioSourceId, audioNodeId, authFetchEventId, connectionId, serviceTag, status, error) {
-            var _this = _super.call(this, "RecognitionEndedEvent", requestId, status === RecognitionCompletionStatus.Success ? Exports_10.EventType.Info : Exports_10.EventType.Error) || this;
+            var _this = _super.call(this, "RecognitionEndedEvent", requestId, status === RecognitionCompletionStatus.Success ? Exports_12.EventType.Info : Exports_12.EventType.Error) || this;
             _this.audioSourceId = audioSourceId;
             _this.audioNodeId = audioNodeId;
             _this.connectionId = connectionId;
@@ -2941,7 +3077,7 @@ define("src/sdk/speech/RecognitionEvents", ["require", "exports", "src/common/Ex
     }(SpeechRecognitionEvent));
     exports.RecognitionEndedEvent = RecognitionEndedEvent;
 });
-define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports", "src/common/Exports", "src/sdk/speech/RecognitionEvents"], function (require, exports, Exports_11, RecognitionEvents_1) {
+define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports", "src/common/Exports", "src/sdk/speech/RecognitionEvents"], function (require, exports, Exports_13, RecognitionEvents_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ServiceTelemetryListener = (function () {
@@ -2962,13 +3098,13 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                         Start: e.EventTime,
                     };
                 }
-                if (e instanceof Exports_11.AudioStreamNodeAttachingEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
+                if (e instanceof Exports_13.AudioStreamNodeAttachingEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
                     _this.micStartTime = e.EventTime;
                 }
-                if (e instanceof Exports_11.AudioStreamNodeAttachedEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
+                if (e instanceof Exports_13.AudioStreamNodeAttachedEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
                     _this.micStartTime = e.EventTime;
                 }
-                if (e instanceof Exports_11.AudioSourceErrorEvent && e.AudioSourceId === _this.audioSourceId) {
+                if (e instanceof Exports_13.AudioSourceErrorEvent && e.AudioSourceId === _this.audioSourceId) {
                     if (!_this.micMetric) {
                         _this.micMetric = {
                             End: e.EventTime,
@@ -2978,7 +3114,7 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                         };
                     }
                 }
-                if (e instanceof Exports_11.AudioStreamNodeErrorEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
+                if (e instanceof Exports_13.AudioStreamNodeErrorEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
                     if (!_this.micMetric) {
                         _this.micMetric = {
                             End: e.EventTime,
@@ -2988,7 +3124,7 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                         };
                     }
                 }
-                if (e instanceof Exports_11.AudioStreamNodeDetachedEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
+                if (e instanceof Exports_13.AudioStreamNodeDetachedEvent && e.AudioSourceId === _this.audioSourceId && e.AudioNodeId === _this.audioNodeId) {
                     if (!_this.micMetric) {
                         _this.micMetric = {
                             End: e.EventTime,
@@ -3000,10 +3136,10 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                 if (e instanceof RecognitionEvents_1.ConnectingToServiceEvent && e.RequestId === _this.requestId) {
                     _this.connectionId = e.ConnectionId;
                 }
-                if (e instanceof Exports_11.ConnectionStartEvent && e.ConnectionId === _this.connectionId) {
+                if (e instanceof Exports_13.ConnectionStartEvent && e.ConnectionId === _this.connectionId) {
                     _this.connectionStartTime = e.EventTime;
                 }
-                if (e instanceof Exports_11.ConnectionEstablishedEvent && e.ConnectionId === _this.connectionId) {
+                if (e instanceof Exports_13.ConnectionEstablishedEvent && e.ConnectionId === _this.connectionId) {
                     if (!_this.connectionEstablishMetric) {
                         _this.connectionEstablishMetric = {
                             End: e.EventTime,
@@ -3013,7 +3149,7 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                         };
                     }
                 }
-                if (e instanceof Exports_11.ConnectionEstablishErrorEvent && e.ConnectionId === _this.connectionId) {
+                if (e instanceof Exports_13.ConnectionEstablishErrorEvent && e.ConnectionId === _this.connectionId) {
                     if (!_this.connectionEstablishMetric) {
                         _this.connectionEstablishMetric = {
                             End: e.EventTime,
@@ -3024,7 +3160,7 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
                         };
                     }
                 }
-                if (e instanceof Exports_11.ConnectionMessageReceivedEvent && e.ConnectionId === _this.connectionId) {
+                if (e instanceof Exports_13.ConnectionMessageReceivedEvent && e.ConnectionId === _this.connectionId) {
                     if (e.Message && e.Message.Headers && e.Message.Headers.path) {
                         if (!_this.receivedMessages[e.Message.Headers.path]) {
                             _this.receivedMessages[e.Message.Headers.path] = new Array();
@@ -3087,7 +3223,7 @@ define("src/sdk/speech/ServiceTelemetryListener.Internal", ["require", "exports"
     }());
     exports.ServiceTelemetryListener = ServiceTelemetryListener;
 });
-define("src/sdk/speech/SpeechConnectionMessage.Internal", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_12) {
+define("src/sdk/speech/SpeechConnectionMessage.Internal", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_14) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PathHeaderName = "path";
@@ -3099,10 +3235,10 @@ define("src/sdk/speech/SpeechConnectionMessage.Internal", ["require", "exports",
         function SpeechConnectionMessage(messageType, path, requestId, contentType, body, additionalHeaders, id) {
             var _this = this;
             if (!path) {
-                throw new Exports_12.ArgumentNullError("path");
+                throw new Exports_14.ArgumentNullError("path");
             }
             if (!requestId) {
-                throw new Exports_12.ArgumentNullError("requestId");
+                throw new Exports_14.ArgumentNullError("requestId");
             }
             var headers = {};
             headers[PathHeaderName] = path;
@@ -3188,10 +3324,10 @@ define("src/sdk/speech/SpeechConnectionMessage.Internal", ["require", "exports",
             return new SpeechConnectionMessage(message.MessageType, path, requestId, contentType, message.Body, additionalHeaders, message.Id);
         };
         return SpeechConnectionMessage;
-    }(Exports_12.ConnectionMessage));
+    }(Exports_14.ConnectionMessage));
     exports.SpeechConnectionMessage = SpeechConnectionMessage;
 });
-define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports", "src/sdk/speech/RecognitionEvents", "src/sdk/speech/RecognizerConfig", "src/sdk/speech/ServiceTelemetryListener.Internal", "src/sdk/speech/SpeechConnectionMessage.Internal"], function (require, exports, Exports_13, RecognitionEvents_2, RecognizerConfig_1, ServiceTelemetryListener_Internal_1, SpeechConnectionMessage_Internal_1) {
+define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports", "src/sdk/speech/RecognitionEvents", "src/sdk/speech/RecognizerConfig", "src/sdk/speech/ServiceTelemetryListener.Internal", "src/sdk/speech/SpeechConnectionMessage.Internal"], function (require, exports, Exports_15, RecognitionEvents_2, RecognizerConfig_1, ServiceTelemetryListener_Internal_1, SpeechConnectionMessage_Internal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Recognizer = (function () {
@@ -3221,7 +3357,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                                 return _this.SendAudio(requestSession.RequestId, connection, audioNode, requestSession);
                             });
                         });
-                        var completionPromise = Exports_13.PromiseHelper.WhenAll([messageRetrievalPromise, messageSendPromise]);
+                        var completionPromise = Exports_15.PromiseHelper.WhenAll([messageRetrievalPromise, messageSendPromise]);
                         completionPromise.On(function (r) {
                             requestSession.Dispose();
                             _this.SendTelemetryData(requestSession.RequestId, connection, requestSession.GetTelemetry());
@@ -3238,7 +3374,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                 if (isUnAuthorized === void 0) { isUnAuthorized = false; }
                 if (_this.connectionFetchPromise) {
                     if (_this.connectionFetchPromise.Result().IsError
-                        || _this.connectionFetchPromise.Result().Result.State() === Exports_13.ConnectionState.Disconnected) {
+                        || _this.connectionFetchPromise.Result().Result.State() === Exports_15.ConnectionState.Disconnected) {
                         _this.connectionId = null;
                         _this.connectionFetchPromise = null;
                         return _this.FetchConnection(requestSession);
@@ -3250,8 +3386,8 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                         return _this.connectionFetchPromise;
                     }
                 }
-                _this.authFetchEventId = Exports_13.CreateNoDashGuid();
-                _this.connectionId = Exports_13.CreateNoDashGuid();
+                _this.authFetchEventId = Exports_15.CreateNoDashGuid();
+                _this.connectionId = Exports_15.CreateNoDashGuid();
                 requestSession.OnPreConnectionStart(_this.authFetchEventId, _this.connectionId);
                 var authPromise = isUnAuthorized ? _this.authentication.FetchOnExpiry(_this.authFetchEventId) : _this.authentication.Fetch(_this.authFetchEventId);
                 _this.connectionFetchPromise = authPromise
@@ -3268,14 +3404,14 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                     return connection.Open().OnSuccessContinueWithPromise(function (response) {
                         if (response.StatusCode === 200) {
                             requestSession.OnConnectionEstablishCompleted(response.StatusCode);
-                            return Exports_13.PromiseHelper.FromResult(connection);
+                            return Exports_15.PromiseHelper.FromResult(connection);
                         }
                         else if (response.StatusCode === 403 && !isUnAuthorized) {
                             return _this.FetchConnection(requestSession, true);
                         }
                         else {
                             requestSession.OnConnectionEstablishCompleted(response.StatusCode, response.Reason);
-                            return Exports_13.PromiseHelper.FromError("Unable to contact server. StatusCode: " + response.StatusCode + ", Reason: " + response.Reason);
+                            return Exports_15.PromiseHelper.FromError("Unable to contact server. StatusCode: " + response.StatusCode + ", Reason: " + response.Reason);
                         }
                     });
                 });
@@ -3313,7 +3449,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                                 break;
                             case "turn.end":
                                 requestSession.OnServiceTurnEndResponse();
-                                return Exports_13.PromiseHelper.FromResult(true);
+                                return Exports_15.PromiseHelper.FromResult(true);
                             default:
                                 break;
                         }
@@ -3325,35 +3461,35 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                 if (speechConfigJson && _this.connectionId !== _this.speechConfigConnectionId) {
                     _this.speechConfigConnectionId = _this.connectionId;
                     return connection
-                        .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_13.MessageType.Text, "speech.config", requestId, "application/json", speechConfigJson));
+                        .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Text, "speech.config", requestId, "application/json", speechConfigJson));
                 }
-                return Exports_13.PromiseHelper.FromResult(true);
+                return Exports_15.PromiseHelper.FromResult(true);
             };
             this.SendSpeechContext = function (requestId, connection, speechContextJson) {
                 if (speechContextJson) {
                     return connection
-                        .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_13.MessageType.Text, "speech.context", requestId, "application/json", speechContextJson));
+                        .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Text, "speech.context", requestId, "application/json", speechContextJson));
                 }
-                return Exports_13.PromiseHelper.FromResult(true);
+                return Exports_15.PromiseHelper.FromResult(true);
             };
             this.SendTelemetryData = function (requestId, connection, telemetryData) {
                 return connection
-                    .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_13.MessageType.Text, "telemetry", requestId, "application/json", telemetryData));
+                    .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Text, "telemetry", requestId, "application/json", telemetryData));
             };
             this.SendAudio = function (requestId, connection, audioStreamNode, requestSession) {
                 return audioStreamNode
                     .Read()
                     .OnSuccessContinueWithPromise(function (audioStreamChunk) {
                     if (requestSession.IsSpeechEnded) {
-                        return Exports_13.PromiseHelper.FromResult(true);
+                        return Exports_15.PromiseHelper.FromResult(true);
                     }
                     else if (audioStreamChunk.IsEnd) {
                         return connection
-                            .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_13.MessageType.Binary, "audio", requestId, null, null));
+                            .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Binary, "audio", requestId, null, null));
                     }
                     else {
                         return connection
-                            .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_13.MessageType.Binary, "audio", requestId, null, audioStreamChunk.Buffer))
+                            .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Binary, "audio", requestId, null, audioStreamChunk.Buffer))
                             .OnSuccessContinueWithPromise(function (_) {
                             return _this.SendAudio(requestId, connection, audioStreamNode, requestSession);
                         });
@@ -3361,16 +3497,16 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                 });
             };
             if (!authentication) {
-                throw new Exports_13.ArgumentNullError("authentication");
+                throw new Exports_15.ArgumentNullError("authentication");
             }
             if (!connectionFactory) {
-                throw new Exports_13.ArgumentNullError("connectionFactory");
+                throw new Exports_15.ArgumentNullError("connectionFactory");
             }
             if (!audioSource) {
-                throw new Exports_13.ArgumentNullError("audioSource");
+                throw new Exports_15.ArgumentNullError("audioSource");
             }
             if (!recognizerConfig) {
-                throw new Exports_13.ArgumentNullError("recognizerConfig");
+                throw new Exports_15.ArgumentNullError("recognizerConfig");
             }
             this.authentication = authentication;
             this.connectionFactory = connectionFactory;
@@ -3483,16 +3619,16 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
             };
             this.OnEvent = function (event) {
                 _this.serviceTelemetryListener.OnEvent(event);
-                Exports_13.Events.Instance.OnEvent(event);
+                Exports_15.Events.Instance.OnEvent(event);
                 if (_this.onEventCallback) {
                     _this.onEventCallback(event);
                 }
             };
             this.audioSourceId = audioSourceId;
             this.onEventCallback = onEventCallback;
-            this.requestId = Exports_13.CreateNoDashGuid();
-            this.audioNodeId = Exports_13.CreateNoDashGuid();
-            this.requestCompletionDeferral = new Exports_13.Deferred();
+            this.requestId = Exports_15.CreateNoDashGuid();
+            this.audioNodeId = Exports_15.CreateNoDashGuid();
+            this.requestCompletionDeferral = new Exports_15.Deferred();
             this.serviceTelemetryListener = new ServiceTelemetryListener_Internal_1.ServiceTelemetryListener(this.requestId, this.audioSourceId, this.audioNodeId);
             this.OnEvent(new RecognitionEvents_2.RecognitionTriggeredEvent(this.RequestId, this.audioSourceId, this.audioNodeId));
         }
@@ -3537,7 +3673,7 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
         return RequestSession;
     }());
 });
-define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_14) {
+define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/common/Exports"], function (require, exports, Exports_16) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var CRLF = "\r\n";
@@ -3545,9 +3681,9 @@ define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/c
         function WebsocketMessageFormatter() {
             var _this = this;
             this.ToConnectionMessage = function (message) {
-                var deferral = new Exports_14.Deferred();
+                var deferral = new Exports_16.Deferred();
                 try {
-                    if (message.MessageType === Exports_14.MessageType.Text) {
+                    if (message.MessageType === Exports_16.MessageType.Text) {
                         var textMessage = message.TextContent;
                         var headers = {};
                         var body = null;
@@ -3560,9 +3696,9 @@ define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/c
                                 }
                             }
                         }
-                        deferral.Resolve(new Exports_14.ConnectionMessage(message.MessageType, body, headers, message.Id));
+                        deferral.Resolve(new Exports_16.ConnectionMessage(message.MessageType, body, headers, message.Id));
                     }
-                    else if (message.MessageType === Exports_14.MessageType.Binary) {
+                    else if (message.MessageType === Exports_16.MessageType.Binary) {
                         var binaryMessage = message.BinaryContent;
                         var headers = {};
                         var body = null;
@@ -3582,7 +3718,7 @@ define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/c
                         if (binaryMessage.byteLength > headerLength + 2) {
                             body = binaryMessage.slice(2 + headerLength);
                         }
-                        deferral.Resolve(new Exports_14.ConnectionMessage(message.MessageType, body, headers, message.Id));
+                        deferral.Resolve(new Exports_16.ConnectionMessage(message.MessageType, body, headers, message.Id));
                     }
                 }
                 catch (e) {
@@ -3591,13 +3727,13 @@ define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/c
                 return deferral.Promise();
             };
             this.FromConnectionMessage = function (message) {
-                var deferral = new Exports_14.Deferred();
+                var deferral = new Exports_16.Deferred();
                 try {
-                    if (message.MessageType === Exports_14.MessageType.Text) {
+                    if (message.MessageType === Exports_16.MessageType.Text) {
                         var payload = "" + _this.MakeHeaders(message) + CRLF + (message.TextBody ? message.TextBody : "");
-                        deferral.Resolve(new Exports_14.RawWebsocketMessage(Exports_14.MessageType.Text, payload, message.Id));
+                        deferral.Resolve(new Exports_16.RawWebsocketMessage(Exports_16.MessageType.Text, payload, message.Id));
                     }
-                    else if (message.MessageType === Exports_14.MessageType.Binary) {
+                    else if (message.MessageType === Exports_16.MessageType.Binary) {
                         var headersString = _this.MakeHeaders(message);
                         var content_1 = message.BinaryBody;
                         var fr_1 = new FileReader();
@@ -3615,7 +3751,7 @@ define("src/sdk/speech/WebsocketMessageFormatter", ["require", "exports", "src/c
                                     dataView.setInt8(2 + headerInt8Array.byteLength + i, bodyInt8Array[i]);
                                 }
                             }
-                            deferral.Resolve(new Exports_14.RawWebsocketMessage(Exports_14.MessageType.Binary, payload, message.Id));
+                            deferral.Resolve(new Exports_16.RawWebsocketMessage(Exports_16.MessageType.Binary, payload, message.Id));
                         };
                         fr_1.onerror = function () {
                             deferral.Reject("failed to load headers into file reader");
@@ -3679,7 +3815,7 @@ define("src/sdk/speech/Exports", ["require", "exports", "src/sdk/speech/Cognitiv
     __export(SpeechResults_1);
     __export(WebsocketMessageFormatter_1);
 });
-define("src/sdk/speech.browser/SpeechConnectionFactory", ["require", "exports", "src/common.browser/Exports", "src/common/Exports", "src/sdk/speech/Exports"], function (require, exports, Exports_15, Exports_16, Exports_17) {
+define("src/sdk/speech.browser/SpeechConnectionFactory", ["require", "exports", "src/common.browser/Exports", "src/common/Exports", "src/sdk/speech/Exports"], function (require, exports, Exports_17, Exports_18, Exports_19) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var TestHooksParamName = "testhooks";
@@ -3690,10 +3826,10 @@ define("src/sdk/speech.browser/SpeechConnectionFactory", ["require", "exports", 
             this.Create = function (config, authInfo, connectionId) {
                 var endpoint = "";
                 switch (config.RecognitionMode) {
-                    case Exports_17.RecognitionMode.Conversation:
+                    case Exports_19.RecognitionMode.Conversation:
                         endpoint = _this.Host + _this.ConversationRelativeUri;
                         break;
-                    case Exports_17.RecognitionMode.Dictation:
+                    case Exports_19.RecognitionMode.Dictation:
                         endpoint = _this.Host + _this.DictationRelativeUri;
                         break;
                     default:
@@ -3701,7 +3837,7 @@ define("src/sdk/speech.browser/SpeechConnectionFactory", ["require", "exports", 
                         break;
                 }
                 var queryParams = {
-                    format: Exports_17.SpeechResultFormat[config.Format].toString().toLowerCase(),
+                    format: Exports_19.SpeechResultFormat[config.Format].toString().toLowerCase(),
                     language: config.Language,
                 };
                 if (_this.IsDebugModeEnabled) {
@@ -3710,40 +3846,40 @@ define("src/sdk/speech.browser/SpeechConnectionFactory", ["require", "exports", 
                 var headers = {};
                 headers[authInfo.HeaderName] = authInfo.Token;
                 headers[ConnectionIdHeader] = connectionId;
-                return new Exports_15.WebsocketConnection(endpoint, queryParams, headers, new Exports_17.WebsocketMessageFormatter(), connectionId);
+                return new Exports_17.WebsocketConnection(endpoint, queryParams, headers, new Exports_19.WebsocketMessageFormatter(), connectionId);
             };
         }
         Object.defineProperty(SpeechConnectionFactory.prototype, "Host", {
             get: function () {
-                return Exports_16.Storage.Local.GetOrAdd("Host", "wss://speech.platform.bing.com");
+                return Exports_18.Storage.Local.GetOrAdd("Host", "wss://speech.platform.bing.com");
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(SpeechConnectionFactory.prototype, "InteractiveRelativeUri", {
             get: function () {
-                return Exports_16.Storage.Local.GetOrAdd("InteractiveRelativeUri", "/speech/recognition/interactive/cognitiveservices/v1");
+                return Exports_18.Storage.Local.GetOrAdd("InteractiveRelativeUri", "/speech/recognition/interactive/cognitiveservices/v1");
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(SpeechConnectionFactory.prototype, "ConversationRelativeUri", {
             get: function () {
-                return Exports_16.Storage.Local.GetOrAdd("ConversationRelativeUri", "/speech/recognition/conversation/cognitiveservices/v1");
+                return Exports_18.Storage.Local.GetOrAdd("ConversationRelativeUri", "/speech/recognition/conversation/cognitiveservices/v1");
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(SpeechConnectionFactory.prototype, "DictationRelativeUri", {
             get: function () {
-                return Exports_16.Storage.Local.GetOrAdd("DictationRelativeUri", "/speech/recognition/dictation/cognitiveservices/v1");
+                return Exports_18.Storage.Local.GetOrAdd("DictationRelativeUri", "/speech/recognition/dictation/cognitiveservices/v1");
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(SpeechConnectionFactory.prototype, "IsDebugModeEnabled", {
             get: function () {
-                var value = Exports_16.Storage.Local.GetOrAdd("IsDebugModeEnabled", "false");
+                var value = Exports_18.Storage.Local.GetOrAdd("IsDebugModeEnabled", "false");
                 return value.toLowerCase() === "true";
             },
             enumerable: true,
@@ -3753,7 +3889,7 @@ define("src/sdk/speech.browser/SpeechConnectionFactory", ["require", "exports", 
     }());
     exports.SpeechConnectionFactory = SpeechConnectionFactory;
 });
-define("src/sdk/speech.browser/Recognizer", ["require", "exports", "src/common.browser/Exports", "src/sdk/speech/Exports", "src/sdk/speech.browser/SpeechConnectionFactory"], function (require, exports, Exports_18, Exports_19, SpeechConnectionFactory_1) {
+define("src/sdk/speech.browser/Recognizer", ["require", "exports", "src/common.browser/Exports", "src/sdk/speech/Exports", "src/sdk/speech.browser/SpeechConnectionFactory"], function (require, exports, Exports_20, Exports_21, SpeechConnectionFactory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var CreateRecognizer = function (recognizerConfig, authentication) {
@@ -3761,11 +3897,15 @@ define("src/sdk/speech.browser/Recognizer", ["require", "exports", "src/common.b
     };
     exports.CreateRecognizer = CreateRecognizer;
     var CreateRecognizerWithPcmRecorder = function (recognizerConfig, authentication) {
-        return CreateRecognizerWithCustomAudioSource(recognizerConfig, authentication, new Exports_18.MicAudioSource(new Exports_18.PcmRecorder()));
+        return CreateRecognizerWithCustomAudioSource(recognizerConfig, authentication, new Exports_20.MicAudioSource(new Exports_20.PcmRecorder()));
     };
     exports.CreateRecognizerWithPcmRecorder = CreateRecognizerWithPcmRecorder;
+    var CreateRecognizerWithFileAudioSource = function (recognizerConfig, authentication, file) {
+        return CreateRecognizerWithCustomAudioSource(recognizerConfig, authentication, new Exports_20.FileAudioSource(file));
+    };
+    exports.CreateRecognizerWithFileAudioSource = CreateRecognizerWithFileAudioSource;
     var CreateRecognizerWithCustomAudioSource = function (recognizerConfig, authentication, audioSource) {
-        return new Exports_19.Recognizer(authentication, new SpeechConnectionFactory_1.SpeechConnectionFactory(), audioSource, recognizerConfig);
+        return new Exports_21.Recognizer(authentication, new SpeechConnectionFactory_1.SpeechConnectionFactory(), audioSource, recognizerConfig);
     };
     exports.CreateRecognizerWithCustomAudioSource = CreateRecognizerWithCustomAudioSource;
 });
@@ -3778,17 +3918,17 @@ define("src/sdk/speech.browser/Exports", ["require", "exports", "src/sdk/speech.
     __export(Recognizer_2);
     __export(SpeechConnectionFactory_2);
 });
-define("Speech.Browser.Sdk", ["require", "exports", "src/common.browser/Exports", "src/common/Exports", "src/common/Exports", "src/common.browser/Exports", "src/sdk/speech/Exports", "src/sdk/speech.browser/Exports"], function (require, exports, Exports_20, Exports_21, Exports_22, Exports_23, Exports_24, Exports_25) {
+define("Speech.Browser.Sdk", ["require", "exports", "src/common.browser/Exports", "src/common/Exports", "src/common/Exports", "src/common.browser/Exports", "src/sdk/speech/Exports", "src/sdk/speech.browser/Exports"], function (require, exports, Exports_22, Exports_23, Exports_24, Exports_25, Exports_26, Exports_27) {
     "use strict";
     function __export(m) {
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
     }
     Object.defineProperty(exports, "__esModule", { value: true });
-    Exports_21.Events.Instance.AttachListener(new Exports_20.ConsoleLoggingListener());
-    __export(Exports_22);
-    __export(Exports_23);
+    Exports_23.Events.Instance.AttachListener(new Exports_22.ConsoleLoggingListener());
     __export(Exports_24);
     __export(Exports_25);
+    __export(Exports_26);
+    __export(Exports_27);
 });
 
 //# sourceMappingURL=speech.browser.sdk.js.map
