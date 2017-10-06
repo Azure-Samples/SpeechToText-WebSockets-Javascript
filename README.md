@@ -59,6 +59,10 @@ function RecognizerStart(SDK, recognizer) {
                 UpdateRecognizedHypothesis(event.Result.Text);
                 console.log(JSON.stringify(event.Result)); // check console for other information in result
                 break;
+            case "SpeechFragmentEvent" :
+                UpdateRecognizedHypothesis(event.Result.Text);
+                console.log(JSON.stringify(event.Result)); // check console for other information in result
+                break;
             case "SpeechEndDetectedEvent" :
                 OnSpeechEndDetected();
                 UpdateStatus("Processing_Adding_Final_Touches");
