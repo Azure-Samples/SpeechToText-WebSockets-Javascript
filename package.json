@@ -1,6 +1,6 @@
 {
   "name": "microsoft-speech-browser-sdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Microsoft Speech SDK for browsers",
   "main": "distrib/speech.browser.sdk-min.js",
   "types": "distrib/speech.browser.sdk.d.ts",
