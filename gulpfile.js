@@ -13,8 +13,7 @@ gulp.task("build", function() {
             "src/common.browser/**/*.ts",
             "src/sdk/speech/**/*.ts",
             "src/sdk/speech.browser/**/*.ts",
-            "Speech.Browser.Sdk.ts",
-            "*.ts"])
+            "Speech.Browser.Sdk.ts"])
         .pipe(tslint({
       formatter: "prose",
             configuration: "tslint.json"
