@@ -79,8 +79,16 @@ export class MicAudioSource implements IAudioSource {
                     this.initializeDeferral.Resolve(true);
 
                 }, (error: MediaStreamError) => {
-                    const errorMsg = `Error occured processing the user media stream. ${error}`;
-                    this.initializeDeferral.Reject(errorMsg);
+                    const errorMsg = `Error occurred processing the user media stream. ${error}`;
+                    const tmp = this.initializeDeferral;
+                    // HACK: this should be handled through onError callbacks of all promises up the stack.
+                    // Unfortunately, the current implementation does not provide an easy way to reject promises
+                    // without a lot of code replication.
+                    // TODO: fix promise implementation, allow for a graceful reject chaining.
+                    this.initializeDeferral = null;
+                    tmp.Reject(errorMsg); // this will bubble up through the whole chain of promises,
+                    // with each new level adding extra "Unhandled callback error" prefix to the error message.
+                    // The following line is not guaranteed to be executed.
                     this.OnEvent(new AudioSourceErrorEvent(this.id, errorMsg));
                 });
         }

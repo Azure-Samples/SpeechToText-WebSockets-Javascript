@@ -1827,8 +1827,10 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                         _this.OnEvent(new Exports_3.AudioSourceReadyEvent(_this.id));
                         _this.initializeDeferral.Resolve(true);
                     }, function (error) {
-                        var errorMsg = "Error occured processing the user media stream. " + error;
-                        _this.initializeDeferral.Reject(errorMsg);
+                        var errorMsg = "Error occurred processing the user media stream. " + error;
+                        var tmp = _this.initializeDeferral;
+                        _this.initializeDeferral = null;
+                        tmp.Reject(errorMsg);
                         _this.OnEvent(new Exports_3.AudioSourceErrorEvent(_this.id, errorMsg));
                     });
                 }

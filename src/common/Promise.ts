@@ -173,16 +173,16 @@ export class Promise<T> implements IPromise<T> {
         this.sink.on(
             (r: T) => {
                 try {
-                    const coninuationResult: TContinuationResult = continuationCallback(this.sink.Result);
-                    continuationDeferral.Resolve(coninuationResult);
+                    const continuationResult: TContinuationResult = continuationCallback(this.sink.Result);
+                    continuationDeferral.Resolve(continuationResult);
                 } catch (e) {
                     continuationDeferral.Reject(`'Unhandled callback error: ${e}'`);
                 }
             },
             (error: string) => {
                 try {
-                    const coninuationResult: TContinuationResult = continuationCallback(this.sink.Result);
-                    continuationDeferral.Resolve(coninuationResult);
+                    const continuationResult: TContinuationResult = continuationCallback(this.sink.Result);
+                    continuationDeferral.Resolve(continuationResult);
                 } catch (e) {
                     continuationDeferral.Reject(`'Unhandled callback error: ${e}. InnerError: ${error}'`);
                 }
@@ -204,8 +204,8 @@ export class Promise<T> implements IPromise<T> {
         this.sink.on(
             (r: T) => {
                 try {
-                    const coninuationResult: TContinuationResult = continuationCallback(r);
-                    continuationDeferral.Resolve(coninuationResult);
+                    const continuationResult: TContinuationResult = continuationCallback(r);
+                    continuationDeferral.Resolve(continuationResult);
                 } catch (e) {
                     continuationDeferral.Reject(`'Unhandled callback error: ${e}'`);
                 }
@@ -232,10 +232,10 @@ export class Promise<T> implements IPromise<T> {
                 try {
                     const continuationPromise: Promise<TContinuationResult> = continuationCallback(this.sink.Result);
                     if (!continuationPromise) {
-                        throw new Error("'Contuniation callback did not return promise'");
+                        throw new Error("'Continuation callback did not return promise'");
                     }
-                    continuationPromise.On((coninuationResult: TContinuationResult) => {
-                        continuationDeferral.Resolve(coninuationResult);
+                    continuationPromise.On((continuationResult: TContinuationResult) => {
+                        continuationDeferral.Resolve(continuationResult);
                     }, (e: string) => {
                         continuationDeferral.Reject(e);
                     });
@@ -247,10 +247,10 @@ export class Promise<T> implements IPromise<T> {
                 try {
                     const continuationPromise: Promise<TContinuationResult> = continuationCallback(this.sink.Result);
                     if (!continuationPromise) {
-                        throw new Error("Contuniation callback did not return promise");
+                        throw new Error("Continuation callback did not return promise");
                     }
-                    continuationPromise.On((coninuationResult: TContinuationResult) => {
-                        continuationDeferral.Resolve(coninuationResult);
+                    continuationPromise.On((continuationResult: TContinuationResult) => {
+                        continuationDeferral.Resolve(continuationResult);
                     }, (e: string) => {
                         continuationDeferral.Reject(e);
                     });
@@ -277,10 +277,10 @@ export class Promise<T> implements IPromise<T> {
                 try {
                     const continuationPromise: Promise<TContinuationResult> = continuationCallback(r);
                     if (!continuationPromise) {
-                        throw new Error("Contuniation callback did not return promise");
+                        throw new Error("Continuation callback did not return promise");
                     }
-                    continuationPromise.On((coninuationResult: TContinuationResult) => {
-                        continuationDeferral.Resolve(coninuationResult);
+                    continuationPromise.On((continuationResult: TContinuationResult) => {
+                        continuationDeferral.Resolve(continuationResult);
                     }, (e: string) => {
                         continuationDeferral.Reject(e);
                     });
