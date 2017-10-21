@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Speech Sample</title>
     <meta charset="utf-8" />
 </head>
+
 <body style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px;">
     <table width="100%">
         <tr>
@@ -15,7 +17,7 @@
         </tr>
         <tr>
             <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
-            <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
+            <td><input id="key" type="text" size="40" value="1e594011d0714aadb8735b3d57a49d4e"></td>
         </tr>
         <tr>
             <td align="right">Laguage:</td>
@@ -64,7 +66,7 @@
             <td>
                 <button id="startBtn" disabled="disabled">Start</button>
                 <button id="stopBtn" disabled="disabled">Stop</button>
-                <input type="file" id="filePicker" accept=".wav" style="display:none"/>
+                <input type="file" id="filePicker" accept=".wav" style="display:none" />
             </td>
         </tr>
         <tr>
@@ -100,25 +102,47 @@
 
     <!-- SDK USAGE -->
     <script>
+        //Agent key words
+        const agentKeyWords = ["ofrecemos", "ofrecer", "toma de datos", "Oportunidad", "llamada", "ofrecerle", "como esta", "confirmar", "el motivo de esta llamada", "proceder"]
+
+        //Client key words
+        const clientKeyWords = ["gracias", "no gracias", "me interesa", "no me interesa", "tengo una inquietud", "pero es que"]
+
         // On doument load resolve the SDK dependecy
         function Initialize(onComplete) {
-            require(["Speech.Browser.Sdk"], function(SDK) {
+            require(["Speech.Browser.Sdk"], function (SDK) {
                 onComplete(SDK);
             });
         }
-        
+
+        function RecognizePerson() {
+
+        }
+
+        function CleanChat() {
+
+        }
+
+        function getMostConfidentText() {
+
+        }
+
+        function cleanedConversation() {
+
+        }
+
         // Setup the recongizer
         function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
-            
+
             switch (recognitionMode) {
-                case "Interactive" :
-                    recognitionMode = SDK.RecognitionMode.Interactive;    
+                case "Interactive":
+                    recognitionMode = SDK.RecognitionMode.Interactive;
                     break;
-                case "Conversation" :
-                    recognitionMode = SDK.RecognitionMode.Conversation;    
+                case "Conversation":
+                    recognitionMode = SDK.RecognitionMode.Conversation;
                     break;
-                case "Dictation" :
-                    recognitionMode = SDK.RecognitionMode.Dictation;    
+                case "Dictation":
+                    recognitionMode = SDK.RecognitionMode.Dictation;
                     break;
                 default:
                     recognitionMode = SDK.RecognitionMode.Interactive;
@@ -135,7 +159,7 @@
 
             // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
             var authentication = new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
-        
+
             var files = document.getElementById('filePicker').files;
             if (!files.length) {
                 return SDK.CreateRecognizer(recognizerConfig, authentication);
@@ -152,39 +176,41 @@
                  if (event instanceof SDK.RecognitionTriggeredEvent)
                 */
                 switch (event.Name) {
-                    case "RecognitionTriggeredEvent" :
+                    case "RecognitionTriggeredEvent":
                         UpdateStatus("Initializing");
                         break;
-                    case "ListeningStartedEvent" :
+                    case "ListeningStartedEvent":
                         UpdateStatus("Listening");
                         break;
-                    case "RecognitionStartedEvent" :
+                    case "RecognitionStartedEvent":
                         UpdateStatus("Listening_Recognizing");
+                        console.log(event)
                         break;
-                    case "SpeechStartDetectedEvent" :
+                    case "SpeechStartDetectedEvent":
                         UpdateStatus("Listening_DetectedSpeech_Recognizing");
                         console.log(JSON.stringify(event.Result)); // check console for other information in result
                         break;
-                    case "SpeechHypothesisEvent" :
+                    case "SpeechHypothesisEvent":
                         UpdateRecognizedHypothesis(event.Result.Text, false);
                         console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        console.log("RESULTS", event.result)
                         break;
-                    case "SpeechFragmentEvent" :
+                    case "SpeechFragmentEvent":
                         UpdateRecognizedHypothesis(event.Result.Text, true);
                         console.log(JSON.stringify(event.Result)); // check console for other information in result
                         break;
-                    case "SpeechEndDetectedEvent" :
+                    case "SpeechEndDetectedEvent":
                         OnSpeechEndDetected();
                         UpdateStatus("Processing_Adding_Final_Touches");
                         console.log(JSON.stringify(event.Result)); // check console for other information in result
                         break;
-                    case "SpeechSimplePhraseEvent" :
+                    case "SpeechSimplePhraseEvent":
                         UpdateRecognizedPhrase(JSON.stringify(event.Result, null, 3));
                         break;
-                    case "SpeechDetailedPhraseEvent" :
+                    case "SpeechDetailedPhraseEvent":
                         UpdateRecognizedPhrase(JSON.stringify(event.Result, null, 3));
                         break;
-                    case "RecognitionEndedEvent" :
+                    case "RecognitionEndedEvent":
                         OnComplete();
                         UpdateStatus("Idle");
                         console.log(JSON.stringify(event)); // Debug information
@@ -193,12 +219,12 @@
                         console.log(JSON.stringify(event)); // Debug information
                 }
             })
-            .On(() => {
-                // The request succeeded. Nothing to do here.
-            },
-            (error) => {
-                console.error(error);
-            });
+                .On(() => {
+                    // The request succeeded. Nothing to do here.
+                },
+                (error) => {
+                    console.error(error);
+                });
         }
 
         // Stop the Recognition.
@@ -252,19 +278,19 @@
                     RecognizerStart(SDK, recognizer);
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                }                
+                }
             });
 
             key.addEventListener("focus", function () {
-               if (key.value == "YOUR_BING_SPEECH_API_KEY") {
-                   key.value = "";
-               }
+                if (key.value == "YOUR_BING_SPEECH_API_KEY") {
+                    key.value = "";
+                }
             });
 
             key.addEventListener("focusout", function () {
-               if (key.value == "") {
-                   key.value = "YOUR_BING_SPEECH_API_KEY";
-               }
+                if (key.value == "") {
+                    key.value = "YOUR_BING_SPEECH_API_KEY";
+                }
             });
 
             filePicker.addEventListener("change", function () {
@@ -298,14 +324,14 @@
         }
 
         function UpdateRecognizedHypothesis(text, append) {
-            if (append) 
+            if (append)
                 hypothesisDiv.innerHTML += text + " ";
-            else 
+            else
                 hypothesisDiv.innerHTML = text;
 
             var length = hypothesisDiv.innerHTML.length;
             if (length > 403) {
-                hypothesisDiv.innerHTML = "..." + hypothesisDiv.innerHTML.substr(length-400, length);
+                hypothesisDiv.innerHTML = "..." + hypothesisDiv.innerHTML.substr(length - 400, length);
             }
         }
 
@@ -316,6 +342,7 @@
         function UpdateRecognizedPhrase(json) {
             hypothesisDiv.innerHTML = "";
             phraseDiv.innerHTML += json + "\n";
+            console.log("JSON", json)
         }
 
         function OnComplete() {
@@ -324,4 +351,5 @@
         }
     </script>
 </body>
+
 </html>
