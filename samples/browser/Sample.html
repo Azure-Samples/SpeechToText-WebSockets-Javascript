@@ -18,7 +18,7 @@
             <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
         </tr>
         <tr>
-            <td align="right">Laguage:</td>
+            <td align="right">Language:</td>
             <td align="left">
                 <select id="languageOptions">
                     <option value="zh-CN">Chinese - CN</option>
@@ -100,14 +100,14 @@
 
     <!-- SDK USAGE -->
     <script>
-        // On doument load resolve the SDK dependecy
+        // On document load resolve the SDK dependency
         function Initialize(onComplete) {
             require(["Speech.Browser.Sdk"], function(SDK) {
                 onComplete(SDK);
             });
         }
         
-        // Setup the recongizer
+        // Setup the recognizer
         function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
             
             switch (recognitionMode) {
@@ -130,7 +130,7 @@
                         new SDK.OS(navigator.userAgent, "Browser", null),
                         new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
                 recognitionMode,
-                language, // Supported laguages are specific to each recognition mode. Refer to docs.
+                language, // Supported languages are specific to each recognition mode. Refer to docs.
                 format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
 
             // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
