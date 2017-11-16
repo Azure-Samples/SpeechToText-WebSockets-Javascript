@@ -88,6 +88,7 @@ export class Queue<TItem> implements IQueue<TItem> {
             this.isDisposing = true;
             while (this.subscribers.Length() > 0) {
                 const subscriber = this.subscribers.RemoveFirst();
+                // TODO: this needs work (Resolve(null) instead?).
                 subscriber.deferral.Reject("Disposed");
             }
 

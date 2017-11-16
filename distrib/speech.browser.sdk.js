@@ -734,16 +734,16 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
                 var continuationDeferral = new Deferred();
                 _this.sink.on(function (r) {
                     try {
-                        var coninuationResult = continuationCallback(_this.sink.Result);
-                        continuationDeferral.Resolve(coninuationResult);
+                        var continuationResult = continuationCallback(_this.sink.Result);
+                        continuationDeferral.Resolve(continuationResult);
                     }
                     catch (e) {
                         continuationDeferral.Reject("'Unhandled callback error: " + e + "'");
                     }
                 }, function (error) {
                     try {
-                        var coninuationResult = continuationCallback(_this.sink.Result);
-                        continuationDeferral.Resolve(coninuationResult);
+                        var continuationResult = continuationCallback(_this.sink.Result);
+                        continuationDeferral.Resolve(continuationResult);
                     }
                     catch (e) {
                         continuationDeferral.Reject("'Unhandled callback error: " + e + ". InnerError: " + error + "'");
@@ -758,8 +758,8 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
                 var continuationDeferral = new Deferred();
                 _this.sink.on(function (r) {
                     try {
-                        var coninuationResult = continuationCallback(r);
-                        continuationDeferral.Resolve(coninuationResult);
+                        var continuationResult = continuationCallback(r);
+                        continuationDeferral.Resolve(continuationResult);
                     }
                     catch (e) {
                         continuationDeferral.Reject("'Unhandled callback error: " + e + "'");
@@ -778,10 +778,10 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
                     try {
                         var continuationPromise = continuationCallback(_this.sink.Result);
                         if (!continuationPromise) {
-                            throw new Error("'Contuniation callback did not return promise'");
+                            throw new Error("'Continuation callback did not return promise'");
                         }
-                        continuationPromise.On(function (coninuationResult) {
-                            continuationDeferral.Resolve(coninuationResult);
+                        continuationPromise.On(function (continuationResult) {
+                            continuationDeferral.Resolve(continuationResult);
                         }, function (e) {
                             continuationDeferral.Reject(e);
                         });
@@ -793,10 +793,10 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
                     try {
                         var continuationPromise = continuationCallback(_this.sink.Result);
                         if (!continuationPromise) {
-                            throw new Error("Contuniation callback did not return promise");
+                            throw new Error("Continuation callback did not return promise");
                         }
-                        continuationPromise.On(function (coninuationResult) {
-                            continuationDeferral.Resolve(coninuationResult);
+                        continuationPromise.On(function (continuationResult) {
+                            continuationDeferral.Resolve(continuationResult);
                         }, function (e) {
                             continuationDeferral.Reject(e);
                         });
@@ -816,10 +816,10 @@ define("src/common/Promise", ["require", "exports", "src/common/Error"], functio
                     try {
                         var continuationPromise = continuationCallback(r);
                         if (!continuationPromise) {
-                            throw new Error("Contuniation callback did not return promise");
+                            throw new Error("Continuation callback did not return promise");
                         }
-                        continuationPromise.On(function (coninuationResult) {
-                            continuationDeferral.Resolve(coninuationResult);
+                        continuationPromise.On(function (continuationResult) {
+                            continuationDeferral.Resolve(continuationResult);
                         }, function (e) {
                             continuationDeferral.Reject(e);
                         });
@@ -1566,10 +1566,13 @@ define("src/common/RiffPcmEncoder", ["require", "exports"], function (require, e
         function RiffPcmEncoder(actualSampleRate, desiredSampleRate) {
             var _this = this;
             this.channelCount = 1;
-            this.Encode = function (isFirstAudioFrame, actualAudioFrame) {
+            this.Encode = function (needHeader, actualAudioFrame) {
                 var audioFrame = _this.DownSampleAudioFrame(actualAudioFrame, _this.actualSampleRate, _this.desiredSampleRate);
+                if (!audioFrame) {
+                    return null;
+                }
                 var audioLength = audioFrame.length * 2;
-                if (!isFirstAudioFrame) {
+                if (!needHeader) {
                     var buffer_1 = new ArrayBuffer(audioLength);
                     var view_1 = new DataView(buffer_1);
                     _this.FloatTo16BitPCM(view_1, 0, audioFrame);
@@ -1606,28 +1609,26 @@ define("src/common/RiffPcmEncoder", ["require", "exports"], function (require, e
                     view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
                 }
             };
-            this.DownSampleAudioFrame = function (audioFrame, actualSampleRate, desiredSamplerate) {
-                if (desiredSamplerate === actualSampleRate || desiredSamplerate > actualSampleRate) {
-                    return audioFrame;
+            this.DownSampleAudioFrame = function (srcFrame, srcRate, dstRate) {
+                if (dstRate === srcRate || dstRate > srcRate) {
+                    return srcFrame;
                 }
-                var sampleRateRatio = actualSampleRate / desiredSamplerate;
-                var newLength = Math.round(audioFrame.length / sampleRateRatio);
-                var downSampledAudioFrame = new Float32Array(newLength);
-                var offsetResult = 0;
-                var offsetBuffer = 0;
-                while (offsetResult < downSampledAudioFrame.length) {
-                    var nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+                var ratio = srcRate / dstRate;
+                var dstLength = Math.round(srcFrame.length / ratio);
+                var dstFrame = new Float32Array(dstLength);
+                var srcOffset = 0;
+                var dstOffset = 0;
+                while (dstOffset < dstLength) {
+                    var nextSrcOffset = Math.round((dstOffset + 1) * ratio);
                     var accum = 0;
                     var count = 0;
-                    for (var i = offsetBuffer; i < nextOffsetBuffer && i < audioFrame.length; i++) {
-                        accum += audioFrame[i];
+                    while (srcOffset < nextSrcOffset && srcOffset < srcFrame.length) {
+                        accum += srcFrame[srcOffset++];
                         count++;
                     }
-                    downSampledAudioFrame[offsetResult] = accum / count;
-                    offsetResult++;
-                    offsetBuffer = nextOffsetBuffer;
+                    dstFrame[dstOffset++] = accum / count;
                 }
-                return downSampledAudioFrame;
+                return dstFrame;
             };
             this.actualSampleRate = actualSampleRate;
             this.desiredSampleRate = desiredSampleRate;
@@ -1811,28 +1812,46 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                 }
                 _this.initializeDeferral = new Exports_3.Deferred();
                 var nav = window.navigator;
-                window.navigator.getUserMedia = (window.navigator.getUserMedia ||
-                    window.navigator.webkitGetUserMedia ||
-                    window.navigator.mozGetUserMedia ||
-                    window.navigator.msGetUserMedia);
-                if (!window.navigator.getUserMedia) {
+                var getUserMedia = (nav.getUserMedia ||
+                    nav.webkitGetUserMedia ||
+                    nav.mozGetUserMedia ||
+                    nav.msGetUserMedia);
+                if (!!nav.mediaDevices) {
+                    getUserMedia = function (constraints, successCallback, errorCallback) {
+                        nav.mediaDevices
+                            .getUserMedia(constraints)
+                            .then(successCallback)
+                            .catch(errorCallback);
+                    };
+                }
+                if (!getUserMedia) {
                     var errorMsg = "Browser does not support getUserMedia.";
                     _this.initializeDeferral.Reject(errorMsg);
                     _this.OnEvent(new Exports_3.AudioSourceErrorEvent(errorMsg, ""));
                 }
                 else {
-                    _this.OnEvent(new Exports_3.AudioSourceInitializingEvent(_this.id));
-                    window.navigator.getUserMedia({ audio: true }, function (mediaStream) {
-                        _this.mediaStream = mediaStream;
-                        _this.OnEvent(new Exports_3.AudioSourceReadyEvent(_this.id));
-                        _this.initializeDeferral.Resolve(true);
-                    }, function (error) {
-                        var errorMsg = "Error occurred processing the user media stream. " + error;
-                        var tmp = _this.initializeDeferral;
-                        _this.initializeDeferral = null;
-                        tmp.Reject(errorMsg);
-                        _this.OnEvent(new Exports_3.AudioSourceErrorEvent(_this.id, errorMsg));
-                    });
+                    var next = function () {
+                        _this.OnEvent(new Exports_3.AudioSourceInitializingEvent(_this.id));
+                        getUserMedia({ audio: true, video: false }, function (mediaStream) {
+                            _this.mediaStream = mediaStream;
+                            _this.OnEvent(new Exports_3.AudioSourceReadyEvent(_this.id));
+                            _this.initializeDeferral.Resolve(true);
+                        }, function (error) {
+                            var errorMsg = "Error occurred during microphone initialization: ${error}";
+                            var tmp = _this.initializeDeferral;
+                            _this.initializeDeferral = null;
+                            tmp.Reject(errorMsg);
+                            _this.OnEvent(new Exports_3.AudioSourceErrorEvent(_this.id, errorMsg));
+                        });
+                    };
+                    if (_this.context.state === "suspended") {
+                        _this.context.resume().then(next, function (reason) {
+                            _this.initializeDeferral.Reject("Failed to initialize audio context: ${error}");
+                        });
+                    }
+                    else {
+                        next();
+                    }
                 }
                 return _this.initializeDeferral.Promise();
             };
@@ -1875,9 +1894,12 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                         }
                     }
                 }
-                _this.recorder.ReleaseMediaResources();
+                _this.recorder.ReleaseMediaResources(_this.context);
                 _this.OnEvent(new Exports_3.AudioSourceOffEvent(_this.id));
                 _this.initializeDeferral = null;
+                if (_this.context.state === "running") {
+                    _this.context.suspend();
+                }
                 return Exports_3.PromiseHelper.FromResult(true);
             };
             this.Listen = function (audioNodeId) {
@@ -1886,7 +1908,7 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                     var stream = new Exports_3.Stream(audioNodeId);
                     _this.streams[audioNodeId] = stream;
                     try {
-                        _this.recorder.Record(_this.mediaStream, stream);
+                        _this.recorder.Record(_this.context, _this.mediaStream, stream);
                     }
                     catch (error) {
                         _this.OnEvent(new Exports_3.AudioStreamNodeErrorEvent(_this.id, audioNodeId, error));
@@ -1902,6 +1924,13 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
             this.id = audioSourceId ? audioSourceId : Exports_3.CreateNoDashGuid();
             this.events = new Exports_3.EventSource();
             this.recorder = recorder;
+            var contextCtor = (window.AudioContext)
+                || (window.webkitAudioContext)
+                || false;
+            if (!contextCtor) {
+                throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
+            }
+            this.context = new contextCtor();
         }
         Object.defineProperty(MicAudioSource.prototype, "Events", {
             get: function () {
@@ -2055,7 +2084,7 @@ define("src/common.browser/OpusRecorder", ["require", "exports"], function (requ
     var OpusRecorder = (function () {
         function OpusRecorder(options) {
             var _this = this;
-            this.Record = function (mediaStream, outputStream) {
+            this.Record = function (context, mediaStream, outputStream) {
                 var mediaRecorder = new MediaRecorder(mediaStream, _this.mediaRecorderOptions);
                 var timeslice = 100;
                 mediaRecorder.ondataavailable = function (dataAvailableEvent) {
@@ -2073,7 +2102,7 @@ define("src/common.browser/OpusRecorder", ["require", "exports"], function (requ
                 };
                 mediaRecorder.start(timeslice);
             };
-            this.ReleaseMediaResources = function () {
+            this.ReleaseMediaResources = function (context) {
                 if (_this.mediaResources.recorder.state !== "inactive") {
                     _this.mediaResources.recorder.stop();
                 }
@@ -2091,69 +2120,55 @@ define("src/common.browser/PCMRecorder", ["require", "exports", "src/common/Expo
     var PcmRecorder = (function () {
         function PcmRecorder() {
             var _this = this;
-            this.Record = function (mediaStream, outputStream) {
-                var contextCtor = (window.AudioContext)
-                    || (window.webkitAudioContext)
-                    || false;
-                if (!contextCtor) {
-                    throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
-                }
-                var audioContext = new contextCtor();
-                var mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+            this.Record = function (context, mediaStream, outputStream) {
                 var desiredSampleRate = 16000;
-                var bufferSize = 2048;
-                var isFirstFrameWritten = false;
-                if (desiredSampleRate * 4 <= mediaStreamSource.context.sampleRate) {
-                    bufferSize = 8192;
-                }
-                else if (desiredSampleRate * 2 <= mediaStreamSource.context.sampleRate) {
-                    bufferSize = 4096;
-                }
-                var scriptNode = mediaStreamSource.context.createScriptProcessor(bufferSize, 1, 1);
-                var waveStreamEncoder = new Exports_6.RiffPcmEncoder(mediaStreamSource.context.sampleRate, desiredSampleRate);
-                scriptNode.onaudioprocess = function (audioProcessingEvent) {
-                    var monoAudioChunk = audioProcessingEvent.inputBuffer.getChannelData(0);
-                    var encodedAudioFrameWithRiffHeader;
-                    var encodedAudioFrame;
-                    if (outputStream) {
-                        if (isFirstFrameWritten) {
-                            if (!encodedAudioFrame) {
-                                encodedAudioFrame = waveStreamEncoder.Encode(false, monoAudioChunk);
-                            }
-                            outputStream.Write(encodedAudioFrame);
+                var scriptNode = (function () {
+                    var bufferSize = 0;
+                    try {
+                        return context.createScriptProcessor(bufferSize, 1, 1);
+                    }
+                    catch (error) {
+                        bufferSize = 2048;
+                        var audioSampleRate = context.sampleRate;
+                        while (bufferSize < 16384 && audioSampleRate >= (2 * desiredSampleRate)) {
+                            bufferSize <<= 1;
+                            audioSampleRate >>= 1;
                         }
-                        else {
-                            if (!encodedAudioFrameWithRiffHeader) {
-                                encodedAudioFrameWithRiffHeader =
-                                    waveStreamEncoder.Encode(true, monoAudioChunk);
-                            }
-                            outputStream.Write(encodedAudioFrameWithRiffHeader);
-                            isFirstFrameWritten = true;
+                        return context.createScriptProcessor(bufferSize, 1, 1);
+                    }
+                })();
+                var waveStreamEncoder = new Exports_6.RiffPcmEncoder(context.sampleRate, desiredSampleRate);
+                var needHeader = true;
+                var that = _this;
+                scriptNode.onaudioprocess = function (event) {
+                    var inputFrame = event.inputBuffer.getChannelData(0);
+                    if (outputStream && !outputStream.IsClosed) {
+                        var waveFrame = waveStreamEncoder.Encode(needHeader, inputFrame);
+                        if (!!waveFrame) {
+                            outputStream.Write(waveFrame);
+                            needHeader = false;
                         }
                     }
                 };
+                var micInput = context.createMediaStreamSource(mediaStream);
                 _this.mediaResources = {
-                    context: audioContext,
                     scriptProcessorNode: scriptNode,
-                    source: mediaStreamSource,
+                    source: micInput,
                     stream: mediaStream,
                 };
-                mediaStreamSource.connect(scriptNode);
-                scriptNode.connect(mediaStreamSource.context.destination);
+                micInput.connect(scriptNode);
+                scriptNode.connect(context.destination);
             };
-            this.ReleaseMediaResources = function () {
+            this.ReleaseMediaResources = function (context) {
                 if (_this.mediaResources) {
                     if (_this.mediaResources.scriptProcessorNode) {
-                        _this.mediaResources.scriptProcessorNode.disconnect();
+                        _this.mediaResources.scriptProcessorNode.disconnect(context.destination);
                         _this.mediaResources.scriptProcessorNode = null;
                     }
                     if (_this.mediaResources.source) {
                         _this.mediaResources.source.disconnect();
                         _this.mediaResources.stream.getTracks().forEach(function (track) { return track.stop(); });
                         _this.mediaResources.source = null;
-                    }
-                    if (_this.mediaResources.context && _this.mediaResources.context.state !== "closed") {
-                        _this.mediaResources.context.close();
                     }
                 }
             };
@@ -3490,24 +3505,32 @@ define("src/sdk/speech/Recognizer", ["require", "exports", "src/common/Exports",
                     .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Text, "telemetry", requestId, "application/json", telemetryData));
             };
             this.SendAudio = function (requestId, connection, audioStreamNode, requestSession) {
-                return audioStreamNode
-                    .Read()
-                    .OnSuccessContinueWithPromise(function (audioStreamChunk) {
-                    if (requestSession.IsSpeechEnded) {
-                        return Exports_15.PromiseHelper.FromResult(true);
-                    }
-                    else if (audioStreamChunk.IsEnd) {
-                        return connection
-                            .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Binary, "audio", requestId, null, null));
-                    }
-                    else {
-                        return connection
-                            .Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Binary, "audio", requestId, null, audioStreamChunk.Buffer))
-                            .OnSuccessContinueWithPromise(function (_) {
-                            return _this.SendAudio(requestId, connection, audioStreamNode, requestSession);
-                        });
-                    }
-                });
+                var deferred = new Exports_15.Deferred();
+                var readAndUploadCycle = function (_) {
+                    audioStreamNode.Read().On(function (audioStreamChunk) {
+                        if (requestSession.IsSpeechEnded) {
+                            deferred.Resolve(true);
+                            return;
+                        }
+                        var payload = (audioStreamChunk.IsEnd) ? null : audioStreamChunk.Buffer;
+                        var uploaded = connection.Send(new SpeechConnectionMessage_Internal_1.SpeechConnectionMessage(Exports_15.MessageType.Binary, "audio", requestId, null, payload));
+                        if (!audioStreamChunk.IsEnd) {
+                            uploaded.OnSuccessContinueWith(readAndUploadCycle);
+                        }
+                        else {
+                            deferred.Resolve(true);
+                        }
+                    }, function (error) {
+                        if (requestSession.IsSpeechEnded) {
+                            deferred.Resolve(true);
+                        }
+                        else {
+                            deferred.Reject(error);
+                        }
+                    });
+                };
+                readAndUploadCycle(true);
+                return deferred.Promise();
             };
             if (!authentication) {
                 throw new Exports_15.ArgumentNullError("authentication");

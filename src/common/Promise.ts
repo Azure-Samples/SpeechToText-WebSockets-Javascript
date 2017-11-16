@@ -148,6 +148,7 @@ export class PromiseHelper {
     }
 }
 
+// TODO: replace with ES6 promises
 // tslint:disable-next-line:max-classes-per-file
 export class Promise<T> implements IPromise<T> {
 

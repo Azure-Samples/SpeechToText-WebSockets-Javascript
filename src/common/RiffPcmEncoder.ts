@@ -11,13 +11,18 @@ export class RiffPcmEncoder {
     }
 
     public Encode = (
-        isFirstAudioFrame: boolean,
+        needHeader: boolean,
         actualAudioFrame: Float32Array): ArrayBuffer => {
 
         const audioFrame = this.DownSampleAudioFrame(actualAudioFrame, this.actualSampleRate, this.desiredSampleRate);
+
+        if (!audioFrame) {
+            return null;
+        }
+
         const audioLength = audioFrame.length * 2;
 
-        if (!isFirstAudioFrame) {
+        if (!needHeader) {
             const buffer = new ArrayBuffer(audioLength);
             const view = new DataView(buffer);
             this.FloatTo16BitPCM(view, 0, audioFrame);
@@ -79,32 +84,30 @@ export class RiffPcmEncoder {
     }
 
     private DownSampleAudioFrame = (
-        audioFrame: Float32Array,
-        actualSampleRate: number,
-        desiredSamplerate: number): Float32Array => {
+        srcFrame: Float32Array,
+        srcRate: number,
+        dstRate: number): Float32Array => {
 
-        if (desiredSamplerate === actualSampleRate || desiredSamplerate > actualSampleRate) {
-            return audioFrame;
+        if (dstRate === srcRate || dstRate > srcRate) {
+            return srcFrame;
         }
 
-        const sampleRateRatio = actualSampleRate / desiredSamplerate;
-        const newLength = Math.round(audioFrame.length / sampleRateRatio);
-        const downSampledAudioFrame = new Float32Array(newLength);
-        let offsetResult = 0;
-        let offsetBuffer = 0;
-        while (offsetResult < downSampledAudioFrame.length) {
-            const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+        const ratio = srcRate / dstRate;
+        const dstLength = Math.round(srcFrame.length / ratio);
+        const dstFrame = new Float32Array(dstLength);
+        let srcOffset = 0;
+        let dstOffset = 0;
+        while (dstOffset < dstLength) {
+            const nextSrcOffset = Math.round((dstOffset + 1) * ratio);
             let accum = 0;
             let count = 0;
-            for (let i = offsetBuffer; i < nextOffsetBuffer && i < audioFrame.length; i++) {
-                accum += audioFrame[i];
+            while (srcOffset < nextSrcOffset && srcOffset < srcFrame.length) {
+                accum += srcFrame[srcOffset++];
                 count++;
             }
-            downSampledAudioFrame[offsetResult] = accum / count;
-            offsetResult++;
-            offsetBuffer = nextOffsetBuffer;
+            dstFrame[dstOffset++] = accum / count;
         }
 
-        return downSampledAudioFrame;
+        return dstFrame;
     }
 }

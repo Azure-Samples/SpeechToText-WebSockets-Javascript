@@ -44,10 +44,23 @@ export class MicAudioSource implements IAudioSource {
 
     private mediaStream: MediaStream;
 
+    private context: AudioContext;
+
     public constructor(recorder: IRecorder, audioSourceId?: string) {
         this.id = audioSourceId ? audioSourceId : CreateNoDashGuid();
         this.events = new EventSource<AudioSourceEvent>();
         this.recorder = recorder;
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
+        const contextCtor = ((window as any).AudioContext)
+        || ((window as any).webkitAudioContext)
+        || false;
+
+        if (!contextCtor) {
+            throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
+        }
+
+        this.context = new contextCtor();
     }
 
     public TurnOn = (): Promise<boolean> => {
@@ -58,39 +71,60 @@ export class MicAudioSource implements IAudioSource {
         this.initializeDeferral = new Deferred<boolean>();
 
         const nav = window.navigator as INavigatorUserMedia;
-        window.navigator.getUserMedia = (
-            window.navigator.getUserMedia ||
-            (window.navigator as INavigatorUserMedia).webkitGetUserMedia ||
-            (window.navigator as INavigatorUserMedia).mozGetUserMedia ||
-            (window.navigator as INavigatorUserMedia).msGetUserMedia
+
+        let getUserMedia = (
+            nav.getUserMedia ||
+            nav.webkitGetUserMedia ||
+            nav.mozGetUserMedia ||
+            nav.msGetUserMedia
         );
 
-        if (!window.navigator.getUserMedia) {
+        if (!!nav.mediaDevices) {
+            getUserMedia = (constraints: MediaStreamConstraints, successCallback: NavigatorUserMediaSuccessCallback, errorCallback: NavigatorUserMediaErrorCallback): void => {
+                nav.mediaDevices
+                    .getUserMedia(constraints)
+                    .then(successCallback)
+                    .catch(errorCallback);
+            };
+        }
+
+        if (!getUserMedia) {
             const errorMsg = "Browser does not support getUserMedia.";
             this.initializeDeferral.Reject(errorMsg);
             this.OnEvent(new AudioSourceErrorEvent(errorMsg, "")); // mic initialized error - no streamid at this point
         } else {
-            this.OnEvent(new AudioSourceInitializingEvent(this.id)); // no stream id
-            window.navigator.getUserMedia(
-                { audio: true },
-                (mediaStream: MediaStream) => {
-                    this.mediaStream = mediaStream;
-                    this.OnEvent(new AudioSourceReadyEvent(this.id));
-                    this.initializeDeferral.Resolve(true);
+            const next = () => {
+                this.OnEvent(new AudioSourceInitializingEvent(this.id)); // no stream id
+                getUserMedia(
+                    { audio: true, video: false },
+                    (mediaStream: MediaStream) => {
+                        this.mediaStream = mediaStream;
+                        this.OnEvent(new AudioSourceReadyEvent(this.id));
+                        this.initializeDeferral.Resolve(true);
+                    }, (error: MediaStreamError) => {
+                        const errorMsg = "Error occurred during microphone initialization: ${error}";
+                        const tmp = this.initializeDeferral;
+                        // HACK: this should be handled through onError callbacks of all promises up the stack.
+                        // Unfortunately, the current implementation does not provide an easy way to reject promises
+                        // without a lot of code replication.
+                        // TODO: fix promise implementation, allow for a graceful reject chaining.
+                        this.initializeDeferral = null;
+                        tmp.Reject(errorMsg); // this will bubble up through the whole chain of promises,
+                        // with each new level adding extra "Unhandled callback error" prefix to the error message.
+                        // The following line is not guaranteed to be executed.
+                        this.OnEvent(new AudioSourceErrorEvent(this.id, errorMsg));
+                    });
+            };
 
-                }, (error: MediaStreamError) => {
-                    const errorMsg = `Error occurred processing the user media stream. ${error}`;
-                    const tmp = this.initializeDeferral;
-                    // HACK: this should be handled through onError callbacks of all promises up the stack.
-                    // Unfortunately, the current implementation does not provide an easy way to reject promises
-                    // without a lot of code replication.
-                    // TODO: fix promise implementation, allow for a graceful reject chaining.
-                    this.initializeDeferral = null;
-                    tmp.Reject(errorMsg); // this will bubble up through the whole chain of promises,
-                    // with each new level adding extra "Unhandled callback error" prefix to the error message.
-                    // The following line is not guaranteed to be executed.
-                    this.OnEvent(new AudioSourceErrorEvent(this.id, errorMsg));
+            if (this.context.state === "suspended") {
+                // NOTE: On iOS, the Web Audio API requires sounds to be triggered from an explicit user action.
+                // https://github.com/WebAudio/web-audio-api/issues/790
+                this.context.resume().then(next, (reason: any) => {
+                    this.initializeDeferral.Reject("Failed to initialize audio context: ${error}");
                 });
+            } else {
+                next();
+            }
         }
 
         return this.initializeDeferral.Promise();
@@ -141,10 +175,21 @@ export class MicAudioSource implements IAudioSource {
             }
         }
 
-        this.recorder.ReleaseMediaResources();
+        this.recorder.ReleaseMediaResources(this.context);
 
         this.OnEvent(new AudioSourceOffEvent(this.id)); // no stream now
         this.initializeDeferral = null;
+
+        if (this.context.state === "running") {
+            // Suspend actually takes a callback, but analogous to the
+            // resume method, it'll be only fire if suspend is called
+            // in a direct response to the user action. The later is not always
+            // the case, as TurnOff is always called, when the receive an
+            // end-of-speech message from the service. So, doing a best effort
+            // fire-and-forget here.
+            this.context.suspend();
+        }
+
         return PromiseHelper.FromResult(true);
     }
 
@@ -159,7 +204,7 @@ export class MicAudioSource implements IAudioSource {
                 this.streams[audioNodeId] = stream;
 
                 try {
-                    this.recorder.Record(this.mediaStream, stream);
+                    this.recorder.Record(this.context, this.mediaStream, stream);
                 } catch (error) {
                     this.OnEvent(new AudioStreamNodeErrorEvent(this.id, audioNodeId, error));
                     throw error;

@@ -529,7 +529,7 @@ declare module "src/common/RiffPcmEncoder" {
         private desiredSampleRate;
         private channelCount;
         constructor(actualSampleRate: number, desiredSampleRate: number);
-        Encode: (isFirstAudioFrame: boolean, actualAudioFrame: Float32Array) => ArrayBuffer;
+        Encode: (needHeader: boolean, actualAudioFrame: Float32Array) => ArrayBuffer;
         private SetString;
         private FloatTo16BitPCM;
         private DownSampleAudioFrame;
@@ -586,8 +586,8 @@ declare module "src/common.browser/ConsoleLoggingListener" {
 declare module "src/common.browser/IRecorder" {
     import { Stream } from "src/common/Exports";
     export interface IRecorder {
-        Record(mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void;
-        ReleaseMediaResources(): void;
+        Record(context: AudioContext, mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void;
+        ReleaseMediaResources(context: AudioContext): void;
     }
 }
 declare module "src/common.browser/LocalStorage" {
@@ -609,6 +609,7 @@ declare module "src/common.browser/MicAudioSource" {
         private initializeDeferral;
         private recorder;
         private mediaStream;
+        private context;
         constructor(recorder: IRecorder, audioSourceId?: string);
         TurnOn: () => Promise<boolean>;
         Id: () => string;
@@ -652,8 +653,8 @@ declare module "src/common.browser/OpusRecorder" {
             mimeType: string;
             bitsPerSecond: number;
         });
-        Record: (mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>) => void;
-        ReleaseMediaResources: () => void;
+        Record: (context: AudioContext, mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>) => void;
+        ReleaseMediaResources: (context: AudioContext) => void;
     }
 }
 declare module "src/common.browser/PCMRecorder" {
@@ -661,8 +662,8 @@ declare module "src/common.browser/PCMRecorder" {
     import { IRecorder } from "src/common.browser/IRecorder";
     export class PcmRecorder implements IRecorder {
         private mediaResources;
-        Record: (mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>) => void;
-        ReleaseMediaResources: () => void;
+        Record: (context: AudioContext, mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>) => void;
+        ReleaseMediaResources: (context: AudioContext) => void;
     }
 }
 declare module "src/common.browser/SessionStorage" {

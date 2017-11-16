@@ -317,6 +317,9 @@
         });
 
         function Setup() {
+            if (recognizer != null) {
+                RecognizerStop(SDK, recognizer);
+            }
             recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value);
         }
 

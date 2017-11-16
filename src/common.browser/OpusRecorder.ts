@@ -1,7 +1,7 @@
 import { Stream } from "../common/Exports";
 import { IRecorder } from "./IRecorder";
 
-// getting around the build error for MediaRecorder as Typescript does nothave a definition for this one.
+// getting around the build error for MediaRecorder as Typescript does not have a definition for this one.
 declare var MediaRecorder: any;
 
 export class OpusRecorder implements IRecorder {
@@ -12,7 +12,7 @@ export class OpusRecorder implements IRecorder {
         this.mediaRecorderOptions = options;
     }
 
-    public Record = (mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void => {
+    public Record = (context: AudioContext, mediaStream: MediaStream, outputStream: Stream<ArrayBuffer>): void => {
         const mediaRecorder: any = new MediaRecorder(mediaStream, this.mediaRecorderOptions);
         const timeslice = 100; // this is in ms - 100 ensures that the chunk doesn't exceed the max size of chunk allowed in WS connection
         mediaRecorder.ondataavailable = (dataAvailableEvent: any) => {
@@ -32,7 +32,7 @@ export class OpusRecorder implements IRecorder {
         mediaRecorder.start(timeslice);
     }
 
-    public ReleaseMediaResources = (): void => {
+    public ReleaseMediaResources = (context: AudioContext): void => {
         if (this.mediaResources.recorder.state !== "inactive") {
             this.mediaResources.recorder.stop();
         }

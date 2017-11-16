@@ -271,33 +271,53 @@ export class Recognizer {
         connection: IConnection,
         audioStreamNode: IAudioStreamNode,
         requestSession: RequestSession): Promise<boolean> => {
-        return audioStreamNode
-            .Read()
-            .OnSuccessContinueWithPromise((audioStreamChunk: IStreamChunk<ArrayBuffer>) => {
-                if (requestSession.IsSpeechEnded) {
-                    // If service already recognized audio end then dont send any more audio
-                    return PromiseHelper.FromResult(true);
-                } else if (audioStreamChunk.IsEnd) {
-                    return connection
-                        .Send(new SpeechConnectionMessage(
-                            MessageType.Binary,
-                            "audio",
-                            requestId,
-                            null,
-                            null));
-                } else {
-                    return connection
-                        .Send(new SpeechConnectionMessage(
-                            MessageType.Binary,
-                            "audio",
-                            requestId,
-                            null,
-                            audioStreamChunk.Buffer))
-                        .OnSuccessContinueWithPromise((_: boolean) => {
-                            return this.SendAudio(requestId, connection, audioStreamNode, requestSession);
-                        });
-                }
-            });
+            // NOTE: Home-baked promises crash ios safari during the invocation
+            // of the error callback chain (looks like the recursion is way too deep, and
+            // it blows up the stack). The following construct is a stop-gap that does not
+            // bubble the error up the callback chain and hence circumvents this problem.
+            // TODO: rewrite with ES6 promises.
+            const deferred = new Deferred<boolean>();
+
+            const readAndUploadCycle = (_: boolean) => {
+                audioStreamNode.Read().On(
+                    (audioStreamChunk: IStreamChunk<ArrayBuffer>) => {
+                        // we have a new audio chunk to upload.
+                        if (requestSession.IsSpeechEnded) {
+                            // If service already recognized audio end then dont send any more audio
+                            deferred.Resolve(true);
+                            return;
+                        }
+
+                        const payload = (audioStreamChunk.IsEnd) ? null : audioStreamChunk.Buffer;
+                        const uploaded = connection.Send(
+                            new SpeechConnectionMessage(
+                                MessageType.Binary, "audio", requestId, null, payload));
+
+                        if (!audioStreamChunk.IsEnd) {
+                            uploaded.OnSuccessContinueWith(readAndUploadCycle);
+                        } else {
+                            // the audio stream has been closed, no need to schedule next
+                            // read-upload cycle.
+                            deferred.Resolve(true);
+                        }
+                    },
+                    (error: string) => {
+                        if (requestSession.IsSpeechEnded) {
+                            // For whatever reason, Reject is used to remove queue subscribers inside
+                            // the Queue.DrainAndDispose invoked from DetachAudioNode down blow, which
+                            // means that sometimes things can be rejected in normal circumstances, without
+                            // any errors.
+                            deferred.Resolve(true); // TODO: remove the argument, it's is completely meaningless.
+                        } else {
+                            // Only reject, if there was a proper error.
+                            deferred.Reject(error);
+                        }
+                    });
+            };
+
+            readAndUploadCycle(true);
+
+            return deferred.Promise();
     }
 }
 
