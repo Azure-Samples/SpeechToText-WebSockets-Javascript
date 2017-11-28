@@ -52,7 +52,7 @@ export class FileAudioSource implements IAudioSource {
         this.file = file;
     }
 
-    public TurnOn = (): Promise<boolean> => {
+    public TurnOn = (): Promise<any> => {
         if (typeof FileReader === "undefined") {
             const errorMsg = "Browser does not support FileReader.";
             this.OnEvent(new AudioSourceErrorEvent(errorMsg, "")); // initialization error - no streamid at this point
