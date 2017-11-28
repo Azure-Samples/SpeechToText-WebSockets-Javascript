@@ -56,15 +56,15 @@ export class FileAudioSource implements IAudioSource {
         if (typeof FileReader === "undefined") {
             const errorMsg = "Browser does not support FileReader.";
             this.OnEvent(new AudioSourceErrorEvent(errorMsg, "")); // initialization error - no streamid at this point
-            return PromiseHelper.FromError(errorMsg);
+            return PromiseHelper.FromError<boolean>(errorMsg);
         } else if (this.file.name.lastIndexOf(".wav") !== this.file.name.length - 4) {
             const errorMsg = this.file.name + " is not supported. Only WAVE files are allowed at the moment.";
             this.OnEvent(new AudioSourceErrorEvent(errorMsg, ""));
-            return PromiseHelper.FromError(errorMsg);
+            return PromiseHelper.FromError<boolean>(errorMsg);
         } else if (this.file.size > FileAudioSource.MAX_SIZE) {
             const errorMsg = this.file.name + " exceeds the maximum allowed file size (" + FileAudioSource.MAX_SIZE + ").";
             this.OnEvent(new AudioSourceErrorEvent(errorMsg, ""));
-            return PromiseHelper.FromError(errorMsg);
+            return PromiseHelper.FromError<boolean>(errorMsg);
         }
 
         this.OnEvent(new AudioSourceInitializingEvent(this.id)); // no stream id
