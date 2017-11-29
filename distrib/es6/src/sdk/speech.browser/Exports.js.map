@@ -1,0 +1,1 @@
+{"version":3,"sources":["src/sdk/speech.browser/Exports.ts"],"names":[],"mappings":"AACA,cAAc,cAAc,CAAC;AAC7B,cAAc,2BAA2B,CAAC","file":"Exports.js","sourcesContent":["\r\nexport * from \"./Recognizer\";\r\nexport * from \"./SpeechConnectionFactory\";\r\n"]}
