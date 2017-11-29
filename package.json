@@ -3,6 +3,7 @@
   "version": "0.0.8",
   "description": "Microsoft Speech SDK for browsers",
   "main": "distrib/speech.browser.sdk-min.js",
+  "module": "distrib/Speech.Browser.Sdk.js",
   "types": "distrib/speech.browser.sdk.d.ts",
   "keywords": [
     "microsoft",

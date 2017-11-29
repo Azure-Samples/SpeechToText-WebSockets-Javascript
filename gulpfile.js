@@ -26,9 +26,7 @@ gulp.task("build", function() {
             target: "ES5",
             declaration: true,
             noImplicitAny: true,
-            removeComments: true,
-            module: "AMD",
-            out: 'speech.browser.sdk.js'
+            removeComments: true
         }))
         .pipe(sourcemaps.write("."))
         .pipe(minify())
