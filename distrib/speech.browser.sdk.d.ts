@@ -619,6 +619,8 @@ declare module "src/common.browser/MicAudioSource" {
         readonly Events: EventSource<AudioSourceEvent>;
         private Listen;
         private OnEvent;
+        private CreateAudioContext;
+        private DestroyAudioContext;
     }
 }
 declare module "src/common.browser/FileAudioSource" {

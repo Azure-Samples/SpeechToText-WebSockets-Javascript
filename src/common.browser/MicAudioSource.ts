@@ -50,17 +50,6 @@ export class MicAudioSource implements IAudioSource {
         this.id = audioSourceId ? audioSourceId : CreateNoDashGuid();
         this.events = new EventSource<AudioSourceEvent>();
         this.recorder = recorder;
-
-        // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
-        const contextCtor = ((window as any).AudioContext)
-        || ((window as any).webkitAudioContext)
-        || false;
-
-        if (!contextCtor) {
-            throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
-        }
-
-        this.context = new contextCtor();
     }
 
     public TurnOn = (): Promise<boolean> => {
@@ -69,6 +58,8 @@ export class MicAudioSource implements IAudioSource {
         }
 
         this.initializeDeferral = new Deferred<boolean>();
+
+        this.CreateAudioContext();
 
         const nav = window.navigator as INavigatorUserMedia;
 
@@ -175,20 +166,10 @@ export class MicAudioSource implements IAudioSource {
             }
         }
 
-        this.recorder.ReleaseMediaResources(this.context);
-
         this.OnEvent(new AudioSourceOffEvent(this.id)); // no stream now
         this.initializeDeferral = null;
 
-        if (this.context.state === "running") {
-            // Suspend actually takes a callback, but analogous to the
-            // resume method, it'll be only fire if suspend is called
-            // in a direct response to the user action. The later is not always
-            // the case, as TurnOff is always called, when the receive an
-            // end-of-speech message from the service. So, doing a best effort
-            // fire-and-forget here.
-            this.context.suspend();
-        }
+        this.DestroyAudioContext();
 
         return PromiseHelper.FromResult(true);
     }
@@ -217,5 +198,43 @@ export class MicAudioSource implements IAudioSource {
     private OnEvent = (event: AudioSourceEvent): void => {
         this.events.OnEvent(event);
         Events.Instance.OnEvent(event);
+    }
+
+    private CreateAudioContext = (): void => {
+        if (!!this.context) {
+            return;
+        }
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
+        const AudioContext = ((window as any).AudioContext)
+        || ((window as any).webkitAudioContext)
+        || false;
+
+        if (!AudioContext) {
+            throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
+        }
+
+        this.context = new AudioContext();
+    }
+
+    private DestroyAudioContext = (): void => {
+        if (!this.context) {
+            return;
+        }
+
+        this.recorder.ReleaseMediaResources(this.context);
+
+        if ("close" in this.context) {
+            this.context.close();
+            this.context = null;
+        } else if (this.context.state === "running") {
+            // Suspend actually takes a callback, but analogous to the
+            // resume method, it'll be only fired if suspend is called
+            // in a direct response to a user action. The later is not always
+            // the case, as TurnOff is also called, when we receive an
+            // end-of-speech message from the service. So, doing a best effort
+            // fire-and-forget here.
+            this.context.suspend();
+        }
     }
 }

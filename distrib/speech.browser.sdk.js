@@ -1811,6 +1811,7 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                     return _this.initializeDeferral.Promise();
                 }
                 _this.initializeDeferral = new Exports_3.Deferred();
+                _this.CreateAudioContext();
                 var nav = window.navigator;
                 var getUserMedia = (nav.getUserMedia ||
                     nav.webkitGetUserMedia ||
@@ -1894,12 +1895,9 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                         }
                     }
                 }
-                _this.recorder.ReleaseMediaResources(_this.context);
                 _this.OnEvent(new Exports_3.AudioSourceOffEvent(_this.id));
                 _this.initializeDeferral = null;
-                if (_this.context.state === "running") {
-                    _this.context.suspend();
-                }
+                _this.DestroyAudioContext();
                 return Exports_3.PromiseHelper.FromResult(true);
             };
             this.Listen = function (audioNodeId) {
@@ -1921,16 +1919,34 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                 _this.events.OnEvent(event);
                 Exports_3.Events.Instance.OnEvent(event);
             };
+            this.CreateAudioContext = function () {
+                if (!!_this.context) {
+                    return;
+                }
+                var AudioContext = (window.AudioContext)
+                    || (window.webkitAudioContext)
+                    || false;
+                if (!AudioContext) {
+                    throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
+                }
+                _this.context = new AudioContext();
+            };
+            this.DestroyAudioContext = function () {
+                if (!_this.context) {
+                    return;
+                }
+                _this.recorder.ReleaseMediaResources(_this.context);
+                if ("close" in _this.context) {
+                    _this.context.close();
+                    _this.context = null;
+                }
+                else if (_this.context.state === "running") {
+                    _this.context.suspend();
+                }
+            };
             this.id = audioSourceId ? audioSourceId : Exports_3.CreateNoDashGuid();
             this.events = new Exports_3.EventSource();
             this.recorder = recorder;
-            var contextCtor = (window.AudioContext)
-                || (window.webkitAudioContext)
-                || false;
-            if (!contextCtor) {
-                throw new Error("Browser does not support Web Audio API (AudioContext is not available).");
-            }
-            this.context = new contextCtor();
         }
         Object.defineProperty(MicAudioSource.prototype, "Events", {
             get: function () {
