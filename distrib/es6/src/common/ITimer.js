@@ -1,3 +1,0 @@
-
-
-//# sourceMappingURL=ITimer.js.map

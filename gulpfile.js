@@ -35,7 +35,7 @@ gulp.task("build", function() {
         .pipe(gulp.dest('distrib'));
 });
 
-gulp.task("buildEs6", function() {
+gulp.task("buildEs", function() {
     return gulp.src([
         "src/common/**/*.ts",
         "src/common.browser/**/*.ts",
@@ -51,20 +51,20 @@ gulp.task("buildEs6", function() {
         }))
         .pipe(sourcemaps.init())
         .pipe(ts({
-            target: "ES6",
+            target: "ES5",
             declaration: true,
             noImplicitAny: true,
             removeComments: true,
         }))
         .pipe(sourcemaps.write("."))
-        .pipe(gulp.dest('distrib/es6/'));
+        .pipe(gulp.dest('distrib/es/'));
 });
 
 // We dont want to release anything without successful build. So build task is dependency for these tasks.
-gulp.task('patchRelease', ['build','buildEs6'], function() { return BumpVersionTagAndCommit('patch'); })
-gulp.task('featureRelease', ['build','buildEs6'], function() { return BumpVersionTagAndCommit('minor'); })
-gulp.task('majorRelease', ['build','buildEs6'], function() { return BumpVersionTagAndCommit('major'); })
-gulp.task('preRelease', ['build','buildEs6'], function() { return BumpVersionTagAndCommit('prerelease'); })
+gulp.task('patchRelease', ['build','buildEs'], function() { return BumpVersionTagAndCommit('patch'); })
+gulp.task('featureRelease', ['build','buildEs'], function() { return BumpVersionTagAndCommit('minor'); })
+gulp.task('majorRelease', ['build','buildEs'], function() { return BumpVersionTagAndCommit('major'); })
+gulp.task('preRelease', ['build','buildEs'], function() { return BumpVersionTagAndCommit('prerelease'); })
 
 function BumpVersionTagAndCommit(versionType) {
   return gulp.src(['./package.json'])
