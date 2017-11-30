@@ -34,7 +34,7 @@ export class MicAudioSource {
                         this.OnEvent(new AudioSourceReadyEvent(this.id));
                         this.initializeDeferral.Resolve(true);
                     }, (error) => {
-                        const errorMsg = "Error occurred during microphone initialization: ${error}";
+                        const errorMsg = `Error occurred during microphone initialization: ${error}`;
                         const tmp = this.initializeDeferral;
                         this.initializeDeferral = null;
                         tmp.Reject(errorMsg);
@@ -43,7 +43,7 @@ export class MicAudioSource {
                 };
                 if (this.context.state === "suspended") {
                     this.context.resume().then(next, (reason) => {
-                        this.initializeDeferral.Reject("Failed to initialize audio context: ${error}");
+                        this.initializeDeferral.Reject(`Failed to initialize audio context: ${reason}`);
                     });
                 }
                 else {

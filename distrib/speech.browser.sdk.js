@@ -1838,7 +1838,7 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                             _this.OnEvent(new Exports_3.AudioSourceReadyEvent(_this.id));
                             _this.initializeDeferral.Resolve(true);
                         }, function (error) {
-                            var errorMsg = "Error occurred during microphone initialization: ${error}";
+                            var errorMsg = "Error occurred during microphone initialization: " + error;
                             var tmp = _this.initializeDeferral;
                             _this.initializeDeferral = null;
                             tmp.Reject(errorMsg);
@@ -1847,7 +1847,7 @@ define("src/common.browser/MicAudioSource", ["require", "exports", "src/common/E
                     };
                     if (_this.context.state === "suspended") {
                         _this.context.resume().then(next, function (reason) {
-                            _this.initializeDeferral.Reject("Failed to initialize audio context: ${error}");
+                            _this.initializeDeferral.Reject("Failed to initialize audio context: " + reason);
                         });
                     }
                     else {
