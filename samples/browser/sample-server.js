@@ -5,25 +5,16 @@ var os = require("os");
 var fs = require('fs');
 var qrcode = require('qrcode-terminal'); // "qrcode-terminal": "^0.11.0",
 
-
-var sample = fs.readFileSync('Sample.html', 'utf8');
-
-var sdkPath = new RegExp("<script src=\"(.*speech\.browser\.sdk\.js)\"></script>").exec(sample);
-
-if (!sdkPath || sdkPath.length < 2) {
-    console.log("Failed to find a path to SDK in the Sample.html");
-    return;
-}
-sdkPath = sdkPath[1];
-var sdk = fs.readFileSync(sdkPath, 'utf8');
+var sample = fs.readFileSync(__dirname + '/Sample.html', 'utf8');
 
 var enableTunnel = false;
 for (let j = 0; j < process.argv.length; j++) {  
     enableTunnel |= process.argv[j] == 'enableTunnel';
 }
 
-if (fs.existsSync('speech.key')) {
-    var key = fs.readFileSync('speech.key', 'utf8');
+var keyFile = __dirname+'/speech.key';
+if (fs.existsSync(keyFile)) {
+    var key = fs.readFileSync(keyFile, 'utf8');
     if (!!key) {
         var before = "value=\"YOUR_BING_SPEECH_API_KEY\"";
         var after = " disabled value=\"Using token-based auth mechanism.\"";
@@ -48,10 +39,18 @@ var server = http.createServer(function(request, response){
         getToken(key, function(token){ 
             respond(200, token);
          })
-    } else if (path == '/' || path.endsWith("speech.browser.sdk.js")) {
-        respond(200, (path == '/' ? sample : sdk));
+    } else if (path == '/') {
+        respond(200, sample);
     } else {
-        respond(404);
+        var pathExists = fs.existsSync(__dirname + '/../../'+path);
+
+        if (!pathExists || 
+            !path.endsWith('speech.sdk.bundle.js') &&
+            !path.endsWith('speech.sdk.bundle.js.map')) {
+            respond(404);
+        } else {
+            respond(200, fs.readFileSync(__dirname+'/../../'+path, 'utf8'));
+        }
     }
 });
 

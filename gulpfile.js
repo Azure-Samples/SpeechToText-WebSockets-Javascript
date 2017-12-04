@@ -6,14 +6,13 @@ var minify = require('gulp-minify');
 var git = require('gulp-git');
 var versionBump = require('gulp-bump')
 var tagVersion = require('gulp-tag-version');
+var webpack = require('webpack-stream');
 
 gulp.task("build", function() {
     return gulp.src([
-            "src/common/**/*.ts",
-            "src/common.browser/**/*.ts",
-            "src/sdk/speech/**/*.ts",
-            "src/sdk/speech.browser/**/*.ts",
-            "Speech.Browser.Sdk.ts"])
+            "src/**/*.ts",
+            "Speech.Browser.Sdk.ts"],
+            {base: '.'})
         .pipe(tslint({
       formatter: "prose",
             configuration: "tslint.json"
@@ -26,14 +25,31 @@ gulp.task("build", function() {
             target: "ES5",
             declaration: true,
             noImplicitAny: true,
-            removeComments: true
+            removeComments: true,
+            outDir: 'distrib'
         }))
-        .pipe(sourcemaps.write("."))
-        .pipe(minify())
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('distrib'));
 });
 
-// We dont want to release anything without successful build. So build task is dependency for these tasks.
+gulp.task("bundle", ["build"], function () {
+    return gulp.src('samples/browser/sample_app.js')
+    .pipe(webpack({
+        output: {filename: 'speech.sdk.bundle.js'},
+        devtool: 'source-map',
+        module:  {
+            rules: [{
+                   enforce: 'pre',
+                   test: /\.js$/,
+                   loader: "source-map-loader"
+            }]
+        }
+    }))
+    .pipe(gulp.dest('distrib'));
+});
+
+
+// We don't want to release anything without a successful build. So build task is dependency for these tasks.
 gulp.task('patchRelease', ['build'], function() { return BumpVersionTagAndCommit('patch'); })
 gulp.task('featureRelease', ['build'], function() { return BumpVersionTagAndCommit('minor'); })
 gulp.task('majorRelease', ['build'], function() { return BumpVersionTagAndCommit('major'); })
@@ -41,7 +57,7 @@ gulp.task('preRelease', ['build'], function() { return BumpVersionTagAndCommit('
 
 function BumpVersionTagAndCommit(versionType) {
   return gulp.src(['./package.json'])
-        // bump the version numbr
+        // bump the version number
         .pipe(versionBump({type:versionType}))
         // save it back to filesystem 
         .pipe(gulp.dest('./'))
