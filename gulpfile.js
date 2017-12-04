@@ -1,4 +1,5 @@
 var gulp = require("gulp");
+var webpack = require('webpack-stream');
 var ts = require('gulp-typescript');
 var sourcemaps = require('gulp-sourcemaps');
 var tslint = require("gulp-tslint");
@@ -9,11 +10,9 @@ var tagVersion = require('gulp-tag-version');
 
 gulp.task("build", function() {
     return gulp.src([
-            "src/common/**/*.ts",
-            "src/common.browser/**/*.ts",
-            "src/sdk/speech/**/*.ts",
-            "src/sdk/speech.browser/**/*.ts",
-            "Speech.Browser.Sdk.ts"])
+            "src/**/*.ts",
+            "Speech.Browser.Sdk.ts"],
+            {base: '.'})
         .pipe(tslint({
       formatter: "prose",
             configuration: "tslint.json"
@@ -26,11 +25,17 @@ gulp.task("build", function() {
             target: "ES5",
             declaration: true,
             noImplicitAny: true,
-            removeComments: true
+            removeComments: true,
+            outDir: 'distrib'
         }))
         .pipe(sourcemaps.write("."))
-        .pipe(minify())
         .pipe(gulp.dest('distrib'));
+});
+
+gulp.task("bundle", ["build"], function () {
+    return gulp.src('sample_app.js')
+    .pipe(webpack({output: {filename: 'speech.browser.sdk.bundle.js'}}))
+    .pipe(gulp.dest('distrib'));
 });
 
 // We dont want to release anything without successful build. So build task is dependency for these tasks.

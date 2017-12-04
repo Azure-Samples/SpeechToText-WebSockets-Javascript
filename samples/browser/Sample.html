@@ -92,19 +92,14 @@
         </tr>
     </table>
 
-    <!-- The SDK has a dependency on requirejs (http://requirejs.org/). -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
-
     <!-- SDK REFERENCE -->
-    <script src="../../distrib/speech.browser.sdk.js"></script>
+    <script src="../../distrib/speech.browser.sdk.bundle.js"></script>
 
     <!-- SDK USAGE -->
     <script>
         // On document load resolve the SDK dependency
         function Initialize(onComplete) {
-            require(["Speech.Browser.Sdk"], function(SDK) {
-                onComplete(SDK);
-            });
+            onComplete(window.SDK);
         }
         
         // Setup the recognizer

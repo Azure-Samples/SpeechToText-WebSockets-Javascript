@@ -1,0 +1,1 @@
+window.SDK = require('./distrib/speech.browser.sdk.js')
