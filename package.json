@@ -3,6 +3,7 @@
   "version": "0.0.8",
   "description": "Microsoft Speech SDK for browsers",
   "main": "distrib/speech.browser.sdk-min.js",
+  "module": "distrib/es/Speech.Browser.Sdk.js",
   "types": "distrib/speech.browser.sdk.d.ts",
   "keywords": [
     "microsoft",
@@ -38,8 +39,8 @@
     "typescript": "^2.6.2"
   },
   "scripts": {
-    "prepublishOnly": "npm install & gulp build",
-    "build": "npm install & gulp build",
+    "prepublishOnly": "npm install & gulp build & gulp buildEs",
+    "build": "npm install & gulp build & gulp buildEs",
     "patchRelease": "npm install & gulp patchRelease",
     "featureRelease": "npm install & gulp featureRelease",
     "majorRelease": "npm install & gulp majorRelease",

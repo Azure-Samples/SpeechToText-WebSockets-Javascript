@@ -93,7 +93,7 @@ export class MicAudioSource implements IAudioSource {
                         this.OnEvent(new AudioSourceReadyEvent(this.id));
                         this.initializeDeferral.Resolve(true);
                     }, (error: MediaStreamError) => {
-                        const errorMsg = "Error occurred during microphone initialization: ${error}";
+                        const errorMsg = `Error occurred during microphone initialization: ${error}`;
                         const tmp = this.initializeDeferral;
                         // HACK: this should be handled through onError callbacks of all promises up the stack.
                         // Unfortunately, the current implementation does not provide an easy way to reject promises
@@ -111,7 +111,7 @@ export class MicAudioSource implements IAudioSource {
                 // NOTE: On iOS, the Web Audio API requires sounds to be triggered from an explicit user action.
                 // https://github.com/WebAudio/web-audio-api/issues/790
                 this.context.resume().then(next, (reason: any) => {
-                    this.initializeDeferral.Reject("Failed to initialize audio context: ${error}");
+                    this.initializeDeferral.Reject(`Failed to initialize audio context: ${reason}`);
                 });
             } else {
                 next();

@@ -5,3 +5,4 @@ src/**/*.js
 
 /**/speech.key
 /samples/**/package-lock.json
+.idea/
