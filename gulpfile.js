@@ -25,7 +25,7 @@ gulp.task("build", function() {
             target: "ES5",
             declaration: true,
             noImplicitAny: true,
-            removeComments: true,
+            removeComments: false,
             outDir: 'distrib'
         }))
         .pipe(sourcemaps.write('.'))
