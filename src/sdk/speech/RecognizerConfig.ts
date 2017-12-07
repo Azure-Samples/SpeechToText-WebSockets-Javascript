@@ -37,7 +37,7 @@ export class RecognizerConfig {
         return this.language;
     }
 
-    public get Format(): SpeechResultFormat{
+    public get Format(): SpeechResultFormat {
         return this.format;
     }
 
@@ -77,7 +77,7 @@ export class SpeechConfig {
         });
     }
 
-    public get Context(): Context{
+    public get Context(): Context {
         return this.context;
     }
 
