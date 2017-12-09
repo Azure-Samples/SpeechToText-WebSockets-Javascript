@@ -98,23 +98,6 @@ function RecognizerStop(SDK, recognizer) {
 ## ES6 Module Usage
 ```javascript
 import * as SDK from 'microsoft-speech-browser-sdk';
-
-function RecognizerSetup(recognitionMode, language, format, subscriptionKey) {
-    let recognizerConfig = new SDK.RecognizerConfig(
-        new SDK.SpeechConfig(
-            new SDK.Context(
-                new SDK.OS(navigator.userAgent, "Browser", null),
-                new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
-        recognitionMode, // SDK.RecognitionMode.Interactive
-        language, // Supported laguages are specific to each recognition mode. Refer to docs.
-        format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
-
-    // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback)
-    let authentication = new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
-
-    // return SDK.Recognizer.Create(recognizerConfig, authentication);
-    return SDK.CreateRecognizer(recognizerConfig, authentication);
-}
 ```
 
 ## Try the sample out
