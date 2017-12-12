@@ -8,7 +8,7 @@ var versionBump = require('gulp-bump')
 var tagVersion = require('gulp-tag-version');
 var webpack = require('webpack-stream');
 
-gulp.task("build", function() {
+gulp.task("build_ES5", function() {
     return gulp.src([
             "src/**/*.ts",
             "Speech.Browser.Sdk.ts"],
@@ -32,7 +32,10 @@ gulp.task("build", function() {
         .pipe(gulp.dest('distrib'));
 });
 
-gulp.task("bundle", ["build"], function () {
+
+gulp.task("build", ["build_ES5"]);
+
+gulp.task("bundle", ["build_ES5"], function () {
     return gulp.src('samples/browser/sample_app.js')
     .pipe(webpack({
         output: {filename: 'speech.sdk.bundle.js'},

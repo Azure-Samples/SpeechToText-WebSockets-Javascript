@@ -26,8 +26,11 @@ if (fs.existsSync(keyFile)) {
 
 var port = 8765;
 var server = http.createServer(function(request, response){
-    var respond = function(status, data) {
-        response.writeHead(status);
+    var respond = function(status, data, contentType) {
+        if (typeof(contentType) === 'undefined') {
+            contentType = 'text/plain';
+        }
+        response.writeHead(status, {'Content-Type': contentType});
         !!data && response.write(data);
         response.end();
     }
@@ -40,7 +43,7 @@ var server = http.createServer(function(request, response){
             respond(200, token);
          })
     } else if (path == '/') {
-        respond(200, sample);
+        respond(200, sample, 'text/html');
     } else {
         var pathExists = fs.existsSync(__dirname + '/../../'+path);
 
@@ -49,7 +52,8 @@ var server = http.createServer(function(request, response){
             !path.endsWith('speech.sdk.bundle.js.map')) {
             respond(404);
         } else {
-            respond(200, fs.readFileSync(__dirname+'/../../'+path, 'utf8'));
+            var type = 'application/javascript';
+            respond(200, fs.readFileSync(__dirname+'/../../'+path, 'utf8'), type);
         }
     }
 });

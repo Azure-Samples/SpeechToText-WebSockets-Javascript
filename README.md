@@ -1,24 +1,27 @@
-[![npm version](https://badge.fury.io/js/microsoft-speech-browser-sdk.svg)](https://www.npmjs.com/package/microsoft-speech-browser-sdk)
+[![npm version](https://badge.fury.io/js/microsoft-speech-browser-SDK.svg)](https://www.npmjs.com/package/microsoft-speech-browser-SDK)
 
 ## Background
 Microsoft's Speech Service is a cloud-based platform that features the most advanced algorithms available for converting spoken audio to text. The Universal Speech Protocol allows you to integrate speech recognition into your application using the Microsoft Speech Service.
 
 ## Install
-To install [npm package](https://www.npmjs.com/package/microsoft-speech-browser-sdk) run
+To install [npm package](https://www.npmjs.com/package/microsoft-speech-browser-SDK) run
 ```
-npm install microsoft-speech-browser-sdk
+npm install microsoft-speech-browser-SDK
 ```
 
 ## JavaScript SDK - Sample Usage
-[RequireJs](http://requirejs.org/) is a dependency. Make sure to reference it in your page before using the SDK.
+
+### As a Node module
+
+If you're building a node app and want to use the Speech SDK, all you need to do is add the following import statement:
 
 ```javascript
-// Resolve the SDK dependecy using RequireJs
-require(["Speech.Browser.Sdk"], function(SDK) {
-    // Now start using the SDK
-});
+import * as SDK from 'microsoft-speech-browser-SDK';
+```
 
-// Setup the recongizer
+<a name="reco_setup"></a>and setup the recognizer:
+
+```javascript
 function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
     let recognizerConfig = new SDK.RecognizerConfig(
         new SDK.SpeechConfig(
@@ -26,7 +29,7 @@ function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey
                 new SDK.OS(navigator.userAgent, "Browser", null),
                 new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
         recognitionMode, // SDK.RecognitionMode.Interactive  (Options - Interactive/Conversation/Dictation)
-        language, // Supported laguages are specific to each recognition mode. Refer to docs.
+        language, // Supported languages are specific to each recognition mode Refer to docs.
         format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
 
     // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
@@ -95,10 +98,30 @@ function RecognizerStop(SDK, recognizer) {
 }
 ```
 
-## ES6 Module Usage
-```javascript
-import * as SDK from 'microsoft-speech-browser-sdk';
-```
+
+### In a Browser, as a native ES6 module
+
+...in progress, check back a little later.
+
+### In a Browser, using Webpack
+
+Currently, the TypeScript code in this SDK is compiled using the default module system (CommonJS), which means that the compilation produces a number of distinct JS source files. To make the SDK usable in a browser, it first needs to be "browserified" (all the javascript sources need to be glued together). Towards this end, this is what you need to do:
+
+1. Add `require` statement to you web app source file, for instance (take a look at [sample_app.js](samples/browser/sample_app.js)):
+
+    ```javascript
+        var SDK = require('<path_to_speech_SDK>/Speech.Browser.Sdk.js');
+    ```
+
+2. Setup the recognizer, same a [above](#reco_setup).
+
+3. Run your web-app through the webpack (see "bundle" task in [gulpfile.js](gulpfile.js), to execute it, run `npm run bundle`).
+
+4. Add the generated bundle to your html page:
+
+    ```
+    <script src="../../distrib/speech.sdk.bundle.js"></script>
+    ```
 
 ## Try the sample out
 What to try the sample ? All you need is a subscription key. [Sign up](https://www.microsoft.com/cognitive-services/en-us/sign-up) to get one.
@@ -108,12 +131,12 @@ Here is a handy link to our [Sample](https://htmlpreview.github.io/?https://gith
 **Note:** Some browsers block microphone access on un-secure origin. So, it is recommended to host the 'sample'/'your app' on https to get it working on all supported browsers. 
 
 ## Docs
-The sdk is a reference implementation for the speech websocket protocol. Check the [API reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/bingvoicerecognition#websocket) and [Websocket protocol reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/api-reference-rest/websocketprotocol) for more details.
+The SDK is a reference implementation for the speech websocket protocol. Check the [API reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/API-reference-rest/bingvoicerecognition#websocket) and [Websocket protocol reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/API-reference-rest/websocketprotocol) for more details.
 
 ## Browser support
-The SDK depends on WebRTC apis to get access to the microphone and read the audio stream. Most of todays browsers(Edge/Chrome/Firefox) support this. For more details about supported browsers refer to [navigator.getUserMedia#BrowserCompatibility](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getUserMedia#Browser_compatibility)
+The SDK depends on WebRTC APIs to get access to the microphone and read the audio stream. Most of todays browsers(Edge/Chrome/Firefox) support this. For more details about supported browsers refer to [navigator.getUserMedia#BrowserCompatibility](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getUserMedia#Browser_compatibility)
 
-**Note:** The sdk currently depends on [navigator.getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getUserMedia#Browser_compatibility) api. However this api is in process of being dropped as browsers are moving towards newer [MediaDevices.getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia) instead. The sdk will add support to the newer api soon.
+**Note:** The SDK currently depends on [navigator.getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getUserMedia#Browser_compatibility) API. However this API is in process of being dropped as browsers are moving towards newer [MediaDevices.getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia) instead. The SDK will add support to the newer API soon.
 
 ## Contributing
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
