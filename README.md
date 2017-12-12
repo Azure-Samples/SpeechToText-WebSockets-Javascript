@@ -103,7 +103,7 @@ import * as SDK from 'microsoft-speech-browser-sdk';
 ## Try the sample out
 What to try the sample ? All you need is a subscription key. [Sign up](https://www.microsoft.com/cognitive-services/en-us/sign-up) to get one.
 
-Here is a handy link to our [Sample](https://htmlpreview.github.io/?https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/blob/master/samples/browser/Sample.html)  that you can try out. (Rendered using [htmlPreview](https://github.com/htmlpreview/htmlpreview.github.com))
+Here is a handy link to our [Sample](https://htmlpreview.github.io/?https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/blob/preview/samples/browser/Sample.html)  that you can try out. (Rendered using [htmlPreview](https://github.com/htmlpreview/htmlpreview.github.com))
 
 **Note:** Some browsers block microphone access on un-secure origin. So, it is recommended to host the 'sample'/'your app' on https to get it working on all supported browsers. 
 
