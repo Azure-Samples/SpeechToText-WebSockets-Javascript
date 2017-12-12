@@ -5,92 +5,98 @@
     <meta charset="utf-8" />
 </head>
 <body style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px;">
-    <table width="100%">
-        <tr>
-            <td></td>
-            <td>
-                <h1 style="font-weight:500;">Speech Recognition</h1>
-                <h2 style="font-weight:500;">Microsoft Cognitive Services</h2>
-            </td>
-        </tr>
-        <tr>
-            <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
-            <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
-        </tr>
-        <tr>
-            <td align="right">Language:</td>
-            <td align="left">
-                <select id="languageOptions">
-                    <option value="zh-CN">Chinese - CN</option>
-                    <option value="en-GB">English - GB</option>
-                    <option value="en-US" selected="selected">English - US</option>
-                    <option value="fr-FR">French - FR</option>
-                    <option value="de-DE">German - DE</option>
-                    <option value="it-IT">Italian - IT</option>
-                    <option value="es-ES">Spanish - ES</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">Recognition Mode:</td>
-            <td align="left">
-                <select id="recognitionMode">
-                    <option value="Interactive">Interactive</option>
-                    <option value="Conversation">Conversation</option>
-                    <option value="Dictation">Dictation</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">Format:</td>
-            <td align="left">
-                <select id="formatOptions">
-                    <option value="Simple" selected="selected">Simple Result</option>
-                    <option value="Detailed">Detailed Result</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">Input:</td>
-            <td align="left">
-                <select id="inputSource">
-                    <option value="Mic" selected="selected">Microphone</option>
-                    <option value="File">Audio File</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>
-                <button id="startBtn" disabled="disabled">Start</button>
-                <button id="stopBtn" disabled="disabled">Stop</button>
-                <input type="file" id="filePicker" accept=".wav" style="display:none"/>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>
-                <table>
-                    <tr>
-                        <td>Results:</td>
-                        <td>Current hypothesis:</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <textarea id="phraseDiv" style="display: inline-block;width:500px;height:200px"></textarea>
-                        </td>
-                        <td style="vertical-align: top">
-                            <span id="hypothesisDiv" style="width:200px;height:200px;display:block;"></span>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">Status:</td>
-            <td align="left"><span id="statusDiv"></span></td>
-        </tr>
-    </table>
+    <div id="warning">
+        <h1 style="font-weight:500;">Speech Recognition SDK not found.</h1>
+        <h2 style="font-weight:500;">Please execute <code>npm run bundle</code> and reload.</h2>
+    </div>
+    <div id="content" style="display:none">
+        <table width="100%">
+            <tr>
+                <td></td>
+                <td>
+                    <h1 style="font-weight:500;">Speech Recognition</h1>
+                    <h2 style="font-weight:500;">Microsoft Cognitive Services</h2>
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
+                <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
+            </tr>
+            <tr>
+                <td align="right">Language:</td>
+                <td align="left">
+                    <select id="languageOptions">
+                        <option value="zh-CN">Chinese - CN</option>
+                        <option value="en-GB">English - GB</option>
+                        <option value="en-US" selected="selected">English - US</option>
+                        <option value="fr-FR">French - FR</option>
+                        <option value="de-DE">German - DE</option>
+                        <option value="it-IT">Italian - IT</option>
+                        <option value="es-ES">Spanish - ES</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Recognition Mode:</td>
+                <td align="left">
+                    <select id="recognitionMode">
+                        <option value="Interactive">Interactive</option>
+                        <option value="Conversation">Conversation</option>
+                        <option value="Dictation">Dictation</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Format:</td>
+                <td align="left">
+                    <select id="formatOptions">
+                        <option value="Simple" selected="selected">Simple Result</option>
+                        <option value="Detailed">Detailed Result</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Input:</td>
+                <td align="left">
+                    <select id="inputSource">
+                        <option value="Mic" selected="selected">Microphone</option>
+                        <option value="File">Audio File</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button id="startBtn" disabled="disabled">Start</button>
+                    <button id="stopBtn" disabled="disabled">Stop</button>
+                    <input type="file" id="filePicker" accept=".wav" style="display:none"/>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <table>
+                        <tr>
+                            <td>Results:</td>
+                            <td>Current hypothesis:</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <textarea id="phraseDiv" style="display: inline-block;width:500px;height:200px"></textarea>
+                            </td>
+                            <td style="vertical-align: top">
+                                <span id="hypothesisDiv" style="width:200px;height:200px;display:block;"></span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Status:</td>
+                <td align="left"><span id="statusDiv"></span></td>
+            </tr>
+        </table>
+    </div>
 
     <!-- SDK REFERENCE -->
     <script src="../../distrib/speech.sdk.bundle.js"></script>
@@ -99,7 +105,11 @@
     <script>
         // On document load resolve the SDK dependency
         function Initialize(onComplete) {
-            onComplete(window.SDK);
+            if (!!window.SDK) {
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('warning').style.display = 'none';
+                onComplete(window.SDK);
+            }
         }
         
         // Setup the recognizer
