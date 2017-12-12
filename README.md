@@ -95,6 +95,11 @@ function RecognizerStop(SDK, recognizer) {
 }
 ```
 
+## ES6 Module Usage
+```javascript
+import * as SDK from 'microsoft-speech-browser-sdk';
+```
+
 ## Try the sample out
 What to try the sample ? All you need is a subscription key. [Sign up](https://www.microsoft.com/cognitive-services/en-us/sign-up) to get one.
 
