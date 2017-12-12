@@ -113,7 +113,7 @@ Currently, the TypeScript code in this SDK is compiled using the default module 
         var SDK = require('<path_to_speech_SDK>/Speech.Browser.Sdk.js');
     ```
 
-2. Setup the recognizer, same a [above](#reco_setup).
+2. Setup the recognizer, same as [above](#reco_setup).
 
 3. Run your web-app through the webpack (see "bundle" task in [gulpfile.js](gulpfile.js), to execute it, run `npm run bundle`).
 
