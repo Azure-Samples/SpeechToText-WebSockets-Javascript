@@ -1,22 +1,55 @@
-[![npm version](https://badge.fury.io/js/microsoft-speech-browser-SDK.svg)](https://www.npmjs.com/package/microsoft-speech-browser-SDK)
+[![npm version](https://badge.fury.io/js/microsoft-speech-browser-sdk.svg)](https://www.npmjs.com/package/microsoft-speech-browser-sdk)
 
-## Background
-Microsoft's Speech Service is a cloud-based platform that features the most advanced algorithms available for converting spoken audio to text. The Universal Speech Protocol allows you to integrate speech recognition into your application using the Microsoft Speech Service.
+## Prerequisites
 
-## Install
-To install [npm package](https://www.npmjs.com/package/microsoft-speech-browser-SDK) run
+### Subscribe to the Speech Recognition API, and get a free trial subscription key
+
+The Speech API is part of Cognitive Services. You can get free trial subscription keys from the [Cognitive Services subscription](https://azure.microsoft.com/try/cognitive-services/) page. After you select the Speech API, select **Get API Key** to get the key. It returns a primary and secondary key. Both keys are tied to the same quota, so you can use either key.
+
+> [!IMPORTANT]
+>* Get a subscription key. Before you can use Speech client libraries, you must have a [subscription key](https://azure.microsoft.com/try/cognitive-services/).
+
+## Get started
+
+In this section we will walk you through the necessary steps to load a sample HTML page. The sample is located in our [github repository](https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript). You can **open the sample directly** from the repository, or **open the sample from a local copy** of the repository. 
+
+**Note:** Some browsers block microphone access on un-secure origin. So, it is recommended to host the 'sample'/'your app' on https to get it working on all supported browsers. 
+
+### Open the sample directly
+
+Acquire a subscription key as described above. Then open the [link to the sample](https://htmlpreview.github.io/?https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/blob/preview/samples/browser/Sample.html). This will load the page into your default browser (Rendered using [htmlPreview](https://github.com/htmlpreview/htmlpreview.github.com)).
+
+### Open the sample from a local copy
+
+To try the sample locally, clone this repository:
+
 ```
-npm install microsoft-speech-browser-SDK
+git clone https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript
 ```
 
-## JavaScript SDK - Sample Usage
+compile the TypeScript sources and bundle/browserfy them into a single JavaScript file ([npm](https://www.npmjs.com/) needs to be installed on your machine). Change into the root of the cloned repository and run the commands:
+
+```
+cd SpeechToText-WebSockets-Javascript && npm run bundle
+```
+
+Open `samples\browser\Sample.html` in your favorite browser.
+
+## Next steps
+
+### Installation of npm package
+
+An npm package of the Microsoft Speech Javascript Websocket SDK is available. To install the [npm package](https://www.npmjs.com/package/microsoft-speech-browser-sdk) run
+```
+npm install microsoft-speech-browser-sdk
+```
 
 ### As a Node module
 
 If you're building a node app and want to use the Speech SDK, all you need to do is add the following import statement:
 
 ```javascript
-import * as SDK from 'microsoft-speech-browser-SDK';
+import * as SDK from 'microsoft-speech-browser-sdk';
 ```
 
 <a name="reco_setup"></a>and setup the recognizer:
@@ -98,11 +131,6 @@ function RecognizerStop(SDK, recognizer) {
 }
 ```
 
-
-### In a Browser, as a native ES6 module
-
-...in progress, check back a little later.
-
 ### In a Browser, using Webpack
 
 Currently, the TypeScript code in this SDK is compiled using the default module system (CommonJS), which means that the compilation produces a number of distinct JS source files. To make the SDK usable in a browser, it first needs to be "browserified" (all the javascript sources need to be glued together). Towards this end, this is what you need to do:
@@ -123,27 +151,13 @@ Currently, the TypeScript code in this SDK is compiled using the default module 
     <script src="../../distrib/speech.sdk.bundle.js"></script>
     ```
 
-## Try the sample out
-What to try the sample ? All you need is a subscription key. [Sign up](https://www.microsoft.com/cognitive-services/en-us/sign-up) to get one.
+### In a Browser, as a native ES6 module
 
-Here is a handy link to our [Sample](https://htmlpreview.github.io/?https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/blob/preview/samples/browser/Sample.html)  that you can try out. (Rendered using [htmlPreview](https://github.com/htmlpreview/htmlpreview.github.com))
+...in progress, will be available soon
 
-To try the sample locally, please clone this repository:
-```
-git clone https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript
-```
-
-compile the TypeScript sources and bundle/browserfy them into a single JavaScript file:
-
-```
-cd SpeechToText-WebSockets-Javascript && npm run bundle
-```
-
-open `samples\browser\Sample.html` in your favorite browser.
+### Token-based authentication
 
 To use token-based authentication, please launch a local node server, as described [here](https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/blob/master/samples/browser/README.md)
-
-**Note:** Some browsers block microphone access on un-secure origin. So, it is recommended to host the 'sample'/'your app' on https to get it working on all supported browsers. 
 
 ## Docs
 The SDK is a reference implementation for the speech websocket protocol. Check the [API reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/API-reference-rest/bingvoicerecognition#websocket) and [Websocket protocol reference](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/API-reference-rest/websocketprotocol) for more details.
