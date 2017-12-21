@@ -128,6 +128,21 @@ What to try the sample ? All you need is a subscription key. [Sign up](https://w
 
 Here is a handy link to our [Sample](https://htmlpreview.github.io/?https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/blob/preview/samples/browser/Sample.html)  that you can try out. (Rendered using [htmlPreview](https://github.com/htmlpreview/htmlpreview.github.com))
 
+To try the sample locally, please clone this repository:
+```
+git clone https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript
+```
+
+compile the TypeScript sources and bundle/browserfy them into a single JavaScript file:
+
+```
+cd SpeechToText-WebSockets-Javascript && npm run bundle
+```
+
+open `samples\browser\Sample.html` in your favorite browser.
+
+To use token-based authentication, please launch a local node server, as described [here](https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript/blob/master/samples/browser/README.md)
+
 **Note:** Some browsers block microphone access on un-secure origin. So, it is recommended to host the 'sample'/'your app' on https to get it working on all supported browsers. 
 
 ## Docs
