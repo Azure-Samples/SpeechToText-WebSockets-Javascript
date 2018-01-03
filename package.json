@@ -24,7 +24,7 @@
     "url": "https://github.com/Azure-Samples/SpeechToText-WebSockets-Javascript.git"
   },
   "author": "Microsoft",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-bump": "^2.8.0",
