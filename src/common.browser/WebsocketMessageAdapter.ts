@@ -79,6 +79,7 @@ export class WebsocketMessageAdapter {
         this.connectionState = ConnectionState.Connecting;
 
         this.websocketClient = new WebSocket(this.uri);
+        this.websocketClient.binaryType = "arraybuffer";
         this.receivingMessageQueue = new Queue<ConnectionMessage>();
         this.disconnectDeferral = new Deferred<boolean>();
         this.sendMessageQueue = new Queue<ISendItem>();
@@ -118,26 +119,17 @@ export class WebsocketMessageAdapter {
                 const deferred = new Deferred<ConnectionMessage>();
                 // let id = ++this.idCounter;
                 this.receivingMessageQueue.EnqueueFromPromise(deferred.Promise());
-                if (e.data instanceof Blob) {
-                    const fileReader = new FileReader();
-                    fileReader.onload = (le: Event) => {
-                        const rawMessage = new RawWebsocketMessage(MessageType.Binary, fileReader.result);
-                        this.messageFormatter
-                            .ToConnectionMessage(rawMessage)
-                            .On((connectionMessage: ConnectionMessage) => {
-                                this.OnEvent(new ConnectionMessageReceivedEvent(this.connectionId, networkReceivedTime, connectionMessage));
-                                deferred.Resolve(connectionMessage);
-                            }, (error: string) => {
-                                // TODO: Events for these ?
-                                deferred.Reject(`Invalid binary message format. Error: ${error}`);
-                            });
-                    };
-                    fileReader.onerror = (ev: Event) => {
-                        // TODO: Events for these ?
-                        deferred.Reject("Binary message parse error");
-                    };
-
-                    fileReader.readAsArrayBuffer(e.data);
+                if (e.data instanceof ArrayBuffer) {
+                    const rawMessage = new RawWebsocketMessage(MessageType.Binary, e.data);
+                    this.messageFormatter
+                        .ToConnectionMessage(rawMessage)
+                        .On((connectionMessage: ConnectionMessage) => {
+                            this.OnEvent(new ConnectionMessageReceivedEvent(this.connectionId, networkReceivedTime, connectionMessage));
+                            deferred.Resolve(connectionMessage);
+                        }, (error: string) => {
+                            // TODO: Events for these ?
+                            deferred.Reject(`Invalid binary message format. Error: ${error}`);
+                        });
                 } else {
                     const rawMessage = new RawWebsocketMessage(MessageType.Text, e.data);
                     this.messageFormatter

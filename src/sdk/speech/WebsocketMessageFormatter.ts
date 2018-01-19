@@ -81,35 +81,25 @@ export class WebsocketMessageFormatter implements IWebsocketMessageFormatter {
                 const headersString = this.MakeHeaders(message);
                 const content = message.BinaryBody;
 
-                const fr = new FileReader();
+                const headerInt8Array = new Int8Array(this.StringToArrayBuffer(headersString));
 
-                fr.onload = () => {
-                    const headerInt8Array = new Int8Array(fr.result);
+                const payload = new ArrayBuffer(2 + headerInt8Array.byteLength + (content ? content.byteLength : 0));
+                const dataView = new DataView(payload);
 
-                    const payload = new ArrayBuffer(2 + headerInt8Array.byteLength + (content ? content.byteLength : 0));
-                    const dataView = new DataView(payload);
+                dataView.setInt16(0, headerInt8Array.length);
 
-                    dataView.setInt16(0, headerInt8Array.length);
+                for (let i = 0; i < headerInt8Array.byteLength; i++) {
+                    dataView.setInt8(2 + i, headerInt8Array[i]);
+                }
 
-                    for (let i = 0; i < headerInt8Array.byteLength; i++) {
-                        dataView.setInt8(2 + i, headerInt8Array[i]);
+                if (content) {
+                    const bodyInt8Array = new Int8Array(content);
+                    for (let i = 0; i < bodyInt8Array.byteLength; i++) {
+                        dataView.setInt8(2 + headerInt8Array.byteLength + i, bodyInt8Array[i]);
                     }
+                }
 
-                    if (content) {
-                        const bodyInt8Array = new Int8Array(content);
-                        for (let i = 0; i < bodyInt8Array.byteLength; i++) {
-                            dataView.setInt8(2 + headerInt8Array.byteLength + i, bodyInt8Array[i]);
-                        }
-                    }
-
-                    deferral.Resolve(new RawWebsocketMessage(MessageType.Binary, payload, message.Id));
-                };
-
-                fr.onerror = () => {
-                    deferral.Reject("failed to load headers into file reader");
-                };
-
-                fr.readAsArrayBuffer(new Blob([headersString]));
+                deferral.Resolve(new RawWebsocketMessage(MessageType.Binary, payload, message.Id));
             }
         } catch (e) {
             deferral.Reject(`Error formatting the message. ${e}`);
@@ -154,5 +144,14 @@ export class WebsocketMessageFormatter implements IWebsocketMessageFormatter {
         }
 
         return headers;
+    }
+
+    private StringToArrayBuffer = (str: string): ArrayBuffer => {
+        const buffer = new ArrayBuffer(str.length);
+        const view = new DataView(buffer);
+        for (let i = 0; i < str.length; i++) {
+            view.setUint8(i, str.charCodeAt(i));
+        }
+        return buffer;
     }
 }

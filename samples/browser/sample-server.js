@@ -15,6 +15,7 @@ for (let j = 0; j < process.argv.length; j++) {
 var keyFile = __dirname+'/speech.key';
 if (fs.existsSync(keyFile)) {
     var key = fs.readFileSync(keyFile, 'utf8');
+    key = key.replace(/\s/g, "");
     if (!!key) {
         var before = "value=\"YOUR_BING_SPEECH_API_KEY\"";
         var after = " disabled value=\"Using token-based auth mechanism.\"";
