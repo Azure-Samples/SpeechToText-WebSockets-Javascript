@@ -92,7 +92,7 @@
         // Setup the recognizer
         function RecognizerSetup(SDK, language) {
             recognitionMode = SDK.RecognitionMode.Dictation;
-            subscriptionKey = '5b2ad77d6b9046b88d02edd185bcc933';
+            subscriptionKey = '5b2ad77d6b9046b';
             format = SDK.SpeechResultFormat['Simple']
 
 
@@ -107,7 +107,7 @@
 
 
             var authentication = function() {
-                return new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
+                return new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey + '88d02edd185bcc933');
 
             }();
 
