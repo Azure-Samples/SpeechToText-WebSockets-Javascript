@@ -1,0 +1,77 @@
+header {
+    height: 4.5rem;
+    background-color: skyblue;
+}
+
+#header2 {
+    height: 0.5rem;
+    background-color: #acebff;
+}
+
+#header3 {
+    height: 0.25rem;
+    background-color: #d8f8ff;
+    margin-bottom: 3rem;
+}
+
+#title {
+    text-shadow: -2px 2px white;
+    color: #1b1b8d;
+    font-size: 4rem;
+    margin-left: 16%;
+    font-family: 'Lato', sans-serif;
+}
+
+button {
+    font-size: 1.5rem !important;
+    height: 3rem;
+    width: 10%;
+}
+
+#info-card {
+    margin-top: 4rem;
+}
+
+#post-it li{
+    background-color: #ffffbb;
+}
+
+#top-right {
+    height: 60%;
+
+}
+
+#weather {
+    padding-top: 1rem;
+    /*background-color: lightgrey;*/
+    height: 40%;
+}
+
+#map {
+    height: 580px;
+    border: none;
+}
+
+.card {
+    border: none;
+}
+
+#vmap {
+    height: 100%;
+}
+
+footer {
+    height: 5rem;
+    background-color: skyblue;
+}
+
+#footer2 {
+    height: 0.5rem;
+    background-color: #acebff;
+}
+
+#footer3{
+    margin-top: 4rem;
+    height: 0.25rem;
+    background-color: #d8f8ff;
+}
