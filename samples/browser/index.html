@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Co-Pilot</title>
+        <meta charset="utf-8" />
+
+        <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+        
+        <link rel="stylesheet" href="../../static/style.css"/>
+
+        <!-- Google fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Lato:900i" rel="stylesheet">
+
+    </head>
+    <body>
+        <header>
+            <h1 id="title">CO-PILOT</h1>
+        </header>
+        <div id="header2"></div>
+        <div id="header3"></div>
+        <div class="container">
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quas neque, tenetur officia incidunt obcaecati. Suscipit libero eius maiores aspernatur quibusdam minima magni perferendis dolores consequuntur molestiae. Commodi numquam, ipsa quae.</p>
+            <button type="button" id="startBtn" class="btn btn-success">Start</button>
+            <button type="button" id="stopBtn" class="btn btn-danger" disabled="">Stop</button>
+            <input type="file" id="filePicker" accept=".wav" style="display:none"/>
+
+            <div class="container" id="info-card">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="card">
+
+
+                            <!-- <h3>Victoria International Airport</h3> -->
+                            <div id="map"></div>
+
+                            <!-- Google Map -->
+                            <script>
+                              function initMap() {
+                                var uluru = {lat: 48.648103, lng: -123.428660};
+                                var map = new google.maps.Map(document.getElementById('map'), {
+                                  zoom: 14,
+                                  center: uluru,
+                                  mapTypeId: 'satellite'
+                                });
+                              }
+                            </script>
+                            <script async defer
+                            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIsmIuGiGY6u9OYad7zXXRONhMvswwvys&callback=initMap">
+                            </script>
+                          <!-- <img class="card-img-top" src="http://via.placeholder.com/500x500" alt="Card image cap"> -->
+                        </div>
+                        
+                    </div>
+                    <div class="col-md-5">  
+                        <div id="top-right">
+
+                            <ul class="list-group list-group-flush" id="post-it">
+                            <li class="list-group-item"><b>Frequency:</b> </li>
+                            <li class="list-group-item"><b>Ident:</b> </li>
+                            <li class="list-group-item"><b>Runway:</b> </li>
+                            <li class="list-group-item"><b>Airport:</b> </li>
+                            <li id="phraseDiv" class="list-group-item"><b>Full transmission:</b> </li>
+                            </ul>
+                            <span id="hypothesisDiv" style="width:200px;height:200px;display:block;"></span>
+                            <span id="statusDiv"></span>
+                        </div>
+                        <div id="weather">
+                            <img id="vmap" src="http://vfrmap.com/api?req=map&type=sectc&lat=48.648103&lon=-123.428660&zoom=10">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        </div>
+  <!-- SDK REFERENCE -->
+    <script src="../../distrib/speech.sdk.bundle.js"></script>
+   <!-- SDK USAGE -->
+    <script>
+        // On document load resolve the SDK dependency
+        function Initialize(onComplete) {
+            if (!!window.SDK) {
+                // document.getElementById('content').style.display = 'block';
+                // document.getElementById('warning').style.display = 'none';
+                onComplete(window.SDK);
+            }
+        }
+
+
+
+        // Setup the recognizer
+        function RecognizerSetup(SDK, language) {
+            recognitionMode = SDK.RecognitionMode.Dictation;
+            subscriptionKey = '5b2ad77d6b9046b';
+            format = SDK.SpeechResultFormat['Simple']
+
+
+            var recognizerConfig = new SDK.RecognizerConfig(
+                new SDK.SpeechConfig(
+                    new SDK.Context(
+                        new SDK.OS(navigator.userAgent, "Browser", null),
+                        new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
+                recognitionMode,
+                language, // Supported languages are specific to each recognition mode. Refer to docs.
+                format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
+
+
+            var authentication = function() {
+                return new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey + '88d02edd185bcc933');
+
+            }();
+
+            var files = document.getElementById('filePicker').files;
+            if (!files.length) {
+                return SDK.CreateRecognizer(recognizerConfig, authentication);
+            } else {
+                return SDK.CreateRecognizerWithFileAudioSource(recognizerConfig, authentication, files[0]);
+            }
+        }
+
+
+        // Start the recognition
+        function RecognizerStart(SDK, recognizer) {
+            recognizer.Recognize((event) => {
+                /*
+                 Alternative syntax for typescript devs.
+                 if (event instanceof SDK.RecognitionTriggeredEvent)
+                */
+                switch (event.Name) {
+                    case "RecognitionTriggeredEvent" :
+                        UpdateStatus("Initializing");
+                        break;
+                    case "ListeningStartedEvent" :
+                        UpdateStatus("Listening");
+                        break;
+                    case "RecognitionStartedEvent" :
+                        UpdateStatus("Listening_Recognizing");
+                        break;
+                    case "SpeechStartDetectedEvent" :
+                        UpdateStatus("Listening_DetectedSpeech_Recognizing");
+                        console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        break;
+                    case "SpeechHypothesisEvent" :
+                        UpdateRecognizedHypothesis(event.Result.Text, false);
+                        console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        break;
+                    case "SpeechFragmentEvent" :
+                        UpdateRecognizedHypothesis(event.Result.Text, true);
+                        console.log(JSON.stringify(event.Result.Text)); // check console for other information in result
+                        break;
+                    case "SpeechEndDetectedEvent" :
+                        OnSpeechEndDetected();
+                        UpdateStatus("Processing_Adding_Final_Touches");
+                        console.log(JSON.stringify(event.Result)); // check console for other information in result
+                        break;
+                    case "SpeechDetailedPhraseEvent" :
+                        UpdateRecognizedPhrase(JSON.stringify(event.Result));
+                        break;
+                    case "SpeechSimplePhraseEvent" :
+                        console.log(event)
+                        UpdateRecognizedPhrase(JSON.stringify(event.Result.DisplayText, null, 3));
+                        break;
+                    case "RecognitionEndedEvent" :
+                        OnComplete();
+                        UpdateStatus("Idle");
+                        console.log(JSON.stringify(event)); // Debug information
+                        break;
+                    default:
+                        console.log(JSON.stringify(event)); // Debug information
+                }
+            })
+            .On(() => {
+                // The request succeeded. Nothing to do here.
+            },
+            (error) => {
+                console.error(error);
+            });
+        }
+
+        // Stop the Recognition.
+        function RecognizerStop(SDK, recognizer) {
+            // recognizer.AudioSource.Detach(audioNodeId) can be also used here. (audioNodeId is part of ListeningStartedEvent)
+            recognizer.AudioSource.TurnOff();
+        }
+    </script>
+
+    <!-- Browser Hooks -->
+    <script>
+        var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv;
+        var key, languageOptions, inputSource, filePicker;
+        var SDK;
+        var recognizer;
+        var previousSubscriptionKey;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            startBtn = document.getElementById("startBtn");
+            stopBtn = document.getElementById("stopBtn");
+            phraseDiv = document.getElementById("phraseDiv");
+            statusDiv = document.getElementById("statusDiv");
+            hypothesisDiv = document.getElementById("hypothesisDiv");
+            filePicker = document.getElementById('filePicker');
+
+
+            startBtn.addEventListener("click", function () {
+                if (!recognizer) {
+                    //get key from env
+                    Setup();
+                }
+
+                hypothesisDiv.innerHTML = "";
+                phraseDiv.innerHTML = "";
+                RecognizerStart(SDK, recognizer);
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            });
+
+            stopBtn.addEventListener("click", function () {
+                RecognizerStop(SDK, recognizer);
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            });
+
+            Initialize(function (speechSdk) {
+                SDK = speechSdk;
+                startBtn.disabled = false;
+            });
+        });
+
+        function Setup() {
+            if (recognizer != null) {
+                RecognizerStop(SDK, recognizer);
+            }
+            recognizer = RecognizerSetup(SDK, 'en-US');
+        }
+
+        function UpdateStatus(status) {
+            statusDiv.innerHTML = status;
+        }
+
+
+        function UpdateRecognizedHypothesis(text, append) {
+            if (append)
+                hypothesisDiv.innerHTML += text + " ";
+            else
+                hypothesisDiv.innerHTML = text;
+
+            var length = hypothesisDiv.innerHTML.length;
+            if (length > 403) {
+                hypothesisDiv.innerHTML = "..." + hypothesisDiv.innerHTML.substr(length-400, length);
+            }
+        }
+
+
+        function OnSpeechEndDetected() {
+            stopBtn.disabled = true;
+        }
+
+
+        function UpdateRecognizedPhrase(json) {
+            if(localStorage.result){
+                json += '\n'
+                json += localStorage.getItem('result')
+            }
+            hypothesisDiv.innerHTML = "";
+            phraseDiv.innerHTML = json;
+            localStorage.setItem('result', json)
+        }
+
+        function OnComplete() {
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        }
+
+    </script>
+
+
+        <div id="footer3"></div>
+        <div id="footer2"></div>
+        <footer>
+        </footer>
+    </body>
+</html>
+
+
+
