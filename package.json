@@ -40,12 +40,12 @@
     "webpack-stream": "^4.0.0"
   },
   "scripts": {
-    "prepublishOnly": "npm install & gulp build",
-    "build": "npm install & gulp build",
-    "bundle": "npm install & gulp bundle",
-    "patchRelease": "npm install & gulp patchRelease",
-    "featureRelease": "npm install & gulp featureRelease",
-    "majorRelease": "npm install & gulp majorRelease",
-    "preRelease": "npm install & gulp preRelease"
+    "prepublishOnly": "npm install && gulp build",
+    "build": "npm install && gulp build",
+    "bundle": "npm install && gulp bundle",
+    "patchRelease": "npm install && gulp patchRelease",
+    "featureRelease": "npm install && gulp featureRelease",
+    "majorRelease": "npm install && gulp majorRelease",
+    "preRelease": "npm install && gulp preRelease"
   }
 }
