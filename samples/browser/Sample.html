@@ -19,8 +19,21 @@
                 </td>
             </tr>
             <tr>
+                <td align="right">Recognition API:</td>
+                <td align="left">
+                    <select id="recognitionAPI">
+                        <option value="Bing Speech" selected="selected">Bing Speech</option>
+                        <option value="Custom Speech">Custom Speech</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Custom Speech Endpoint ID<br/>(leave blank for Bing Speech)</a>:</td>
+                <td><input id="endpointId" type="text" size="40" value="YOUR_CUSTOM_SPEECH_ENDPOINT_ID"></td>
+            </tr>
+            <tr>
                 <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
-                <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
+                <td><input id="key" type="text" size="40" value="YOUR_API_SUBSCRIPTION_KEY"></td>
             </tr>
             <tr>
                 <td align="right">Language:</td>
@@ -137,7 +150,7 @@
         }
         
         // Setup the recognizer
-        function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
+        function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey, recognitionAPI, endpointId) {
             
             switch (recognitionMode) {
                 case "Interactive" :
@@ -153,6 +166,18 @@
                     recognitionMode = SDK.RecognitionMode.Interactive;
             }
 
+            switch (recognitionAPI) {
+                case "Bing Speech": 
+                    recognitionAPI = SDK.RecognitionAPI.BingSpeech;
+                    break;
+                case "Custom Speech":
+                    recognitionAPI = SDK.RecognitionAPI.CustomSpeech;
+                    break;
+                default:
+                    recognitionAPI = SDK.RecognitionAPI.BingSpeech;
+                    break;
+            }
+
             var recognizerConfig = new SDK.RecognizerConfig(
                 new SDK.SpeechConfig(
                     new SDK.Context(
@@ -160,8 +185,9 @@
                         new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
                 recognitionMode,
                 language, // Supported languages are specific to each recognition mode. Refer to docs.
-                format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
-
+                format, // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
+                recognitionAPI, // supports Bing Speech and Custom Speech
+                endpointId); // Custom Speech subscription key, see https://cris.ai portal
 
             var useTokenAuth = false;
             
@@ -267,10 +293,10 @@
     <!-- Browser Hooks -->
     <script>
         var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv;
-        var key, languageOptions, formatOptions, recognitionMode, inputSource, filePicker;
+        var endpointId, key, languageOptions, formatOptions, recognitionMode, inputSource, filePicker;
         var SDK;
         var recognizer;
-        var previousSubscriptionKey;
+        var previousEndpointId, previousSubscriptionKey;
 
         document.addEventListener("DOMContentLoaded", function () {
             createBtn = document.getElementById("createBtn");
@@ -279,6 +305,7 @@
             phraseDiv = document.getElementById("phraseDiv");
             hypothesisDiv = document.getElementById("hypothesisDiv");
             statusDiv = document.getElementById("statusDiv");
+            endpointId = document.getElementById("endpointId");
             key = document.getElementById("key");
             languageOptions = document.getElementById("languageOptions");
             formatOptions = document.getElementById("formatOptions");
@@ -289,16 +316,22 @@
             languageOptions.addEventListener("change", Setup);
             formatOptions.addEventListener("change", Setup);
             recognitionMode.addEventListener("change", Setup);
+            recognitionAPI.addEventListener("change", Setup);
 
             startBtn.addEventListener("click", function () {
-                if (key.value == "" || key.value == "YOUR_BING_SPEECH_API_KEY") {
-                    alert("Please enter your Bing Speech subscription key!");
+                if (recognitionAPI.value === "Custom Speech" && (endpointId.value == "" || endpointId.value == "YOUR_CUSTOM_SPEECH_ENDPOINT_ID")) {
+                    alert("Please enter your Custom Speech endpoint id!");
+                    return;
+                }
+                if (key.value == "" || key.value == "YOUR_API_SUBSCRIPTION_KEY") {
+                    alert("Please enter your Bing Speech or Custom Speech API subscription key!");
                     return;
                 }
                 if (inputSource.value === "File") {
                     filePicker.click();
                 } else {
-                    if (!recognizer || previousSubscriptionKey != key.value) {
+                    if (!recognizer || previousSubscriptionKey != key.value || previousEndpointId != endpointId.value) {
+                        previousEndpointId = endpointId.value;
                         previousSubscriptionKey = key.value;
                         Setup();
                     }
@@ -311,15 +344,27 @@
                 }                
             });
 
+            endpointId.addEventListener("focus", function () {
+               if (endpointId.value == "YOUR_CUSTOM_SPEECH_ENDPOINT_ID") {
+                endpointId.value = "";
+               }
+            });
+
+            endpointId.addEventListener("focusout", function () {
+               if (endpointId.value == "") {
+                endpointId.value = "YOUR_CUSTOM_SPEECH_ENDPOINT_ID";
+               }
+            });
+
             key.addEventListener("focus", function () {
-               if (key.value == "YOUR_BING_SPEECH_API_KEY") {
+               if (key.value == "YOUR_API_SUBSCRIPTION_KEY") {
                    key.value = "";
                }
             });
 
             key.addEventListener("focusout", function () {
                if (key.value == "") {
-                   key.value = "YOUR_BING_SPEECH_API_KEY";
+                   key.value = "YOUR_API_SUBSCRIPTION_KEY";
                }
             });
 
@@ -349,7 +394,7 @@
             if (recognizer != null) {
                 RecognizerStop(SDK, recognizer);
             }
-            recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value);
+            recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value, recognitionAPI.value, endpointId.value);
         }
 
         function UpdateStatus(status) {

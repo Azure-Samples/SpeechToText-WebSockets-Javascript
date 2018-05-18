@@ -12,6 +12,7 @@ import {
     PlatformEvent,
     Promise,
 } from "../common/Exports";
+import { RecognitionAPI } from "../sdk/speech/Exports";
 import { WebsocketMessageAdapter } from "./WebsocketMessageAdapter";
 
 export class WebsocketConnection implements IConnection {
@@ -27,6 +28,8 @@ export class WebsocketConnection implements IConnection {
         queryParameters: IStringDictionary<string>,
         headers: IStringDictionary<string>,
         messageFormatter: IWebsocketMessageFormatter,
+        recognitionAPI: RecognitionAPI,
+        endpointId: string,
         connectionId?: string) {
 
         if (!uri) {
@@ -41,6 +44,10 @@ export class WebsocketConnection implements IConnection {
 
         let queryParams = "";
         let i = 0;
+        if (recognitionAPI === RecognitionAPI.CustomSpeech) {
+            queryParams = "?cid=" + endpointId;
+            i++;
+        }
 
         if (queryParameters) {
             for (const paramName in queryParameters) {
