@@ -55,7 +55,7 @@ export class SpeechConnectionFactory implements IConnectionFactory {
     }
 
     private get Host(): string {
-        return Storage.Local.GetOrAdd("Host", "wss://speech.platform.bing.com");
+        return Storage.Local.GetOrAdd("Host", "wss://westus.stt.speech.microsoft.com");
     }
 
     private get InteractiveRelativeUri(): string {
