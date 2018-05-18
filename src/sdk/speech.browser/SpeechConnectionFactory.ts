@@ -9,6 +9,7 @@ import {
     AuthInfo,
     IAuthentication,
     IConnectionFactory,
+    RecognitionAPI,
     RecognitionMode,
     RecognizerConfig,
     SpeechResultFormat,
@@ -24,6 +25,18 @@ export class SpeechConnectionFactory implements IConnectionFactory {
         config: RecognizerConfig,
         authInfo: AuthInfo,
         connectionId?: string): IConnection => {
+
+        switch (config.RecognitionAPI) {
+            case RecognitionAPI.BingSpeech:
+                Storage.Local.Set("Host", "wss://speech.platform.bing.com");
+                break;
+            case RecognitionAPI.CustomSpeech:
+                Storage.Local.Set("Host", "wss://westus.stt.speech.microsoft.com");
+                break;
+            default:
+                Storage.Local.Set("Host", "wss://speech.platform.bing.com");
+                break;
+        }
 
         let endpoint = "";
         switch (config.RecognitionMode) {
@@ -51,11 +64,11 @@ export class SpeechConnectionFactory implements IConnectionFactory {
         headers[authInfo.HeaderName] = authInfo.Token;
         headers[ConnectionIdHeader] = connectionId;
 
-        return new WebsocketConnection(endpoint, queryParams, headers, new WebsocketMessageFormatter(), connectionId);
+        return new WebsocketConnection(endpoint, queryParams, headers, new WebsocketMessageFormatter(), config.RecognitionAPI, config.EndpointId, connectionId);
     }
 
     private get Host(): string {
-        return Storage.Local.GetOrAdd("Host", "wss://westus.stt.speech.microsoft.com");
+        return Storage.Local.GetOrAdd("Host", "wss://speech.platform.bing.com");
     }
 
     private get InteractiveRelativeUri(): string {
