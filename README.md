@@ -67,7 +67,7 @@ function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey
     // Alternatively use SDK.CognitiveTokenAuthentication(fetchCallback, fetchOnExpiryCallback) for token auth
     let authentication = new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
 
-    return SDK.Recognizer.Create(recognizerConfig, authentication);
+    return SDK.CreateRecognizer(recognizerConfig, authentication);
 }
 
 function RecognizerStart(SDK, recognizer) {
