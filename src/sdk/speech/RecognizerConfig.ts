@@ -16,16 +16,22 @@ export class RecognizerConfig {
     private format: SpeechResultFormat;
     private speechConfig: SpeechConfig;
     private recognitionActivityTimeout: number;
+    private host: string;
+    private endpointId: string;
 
     constructor(
         platformConfig: SpeechConfig,
         recognitionMode: RecognitionMode = RecognitionMode.Interactive,
         language: string = "en-us",
-        format: SpeechResultFormat = SpeechResultFormat.Simple) {
+        format: SpeechResultFormat = SpeechResultFormat.Simple,
+        endpoint: string = "wss://speech.platform.bing.com",
+        endpointId: string = null) {
         this.speechConfig = platformConfig ? platformConfig : new SpeechConfig(new Context(null, null));
         this.recognitionMode = recognitionMode;
         this.language = language;
         this.format = format;
+        this.host = endpoint;
+        this.endpointId = endpointId;
         this.recognitionActivityTimeout = recognitionMode === RecognitionMode.Interactive ? 8000 : 25000;
     }
 
@@ -39,6 +45,14 @@ export class RecognizerConfig {
 
     public get Format(): SpeechResultFormat {
         return this.format;
+    }
+
+    public get Host(): string {
+        return this.host;
+    }
+
+    public get EndpointId(): string {
+        return this.endpointId;
     }
 
     public get SpeechConfig(): SpeechConfig {

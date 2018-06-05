@@ -16,6 +16,7 @@ import {
 } from "../speech/Exports";
 
 const TestHooksParamName: string = "testhooks";
+const EndpointIdParamName: string = "cid";
 const ConnectionIdHeader: string = "X-ConnectionId";
 
 export class SpeechConnectionFactory implements IConnectionFactory {
@@ -28,13 +29,13 @@ export class SpeechConnectionFactory implements IConnectionFactory {
         let endpoint = "";
         switch (config.RecognitionMode) {
             case RecognitionMode.Conversation:
-                endpoint = this.Host + this.ConversationRelativeUri;
+                endpoint = this.Host(config.Host) + this.ConversationRelativeUri;
                 break;
             case RecognitionMode.Dictation:
-                endpoint = this.Host + this.DictationRelativeUri;
+                endpoint = this.Host(config.Host) + this.DictationRelativeUri;
                 break;
             default:
-                endpoint = this.Host + this.InteractiveRelativeUri; // default is interactive
+                endpoint = this.Host(config.Host) + this.InteractiveRelativeUri; // default is interactive
                 break;
         }
 
@@ -47,6 +48,10 @@ export class SpeechConnectionFactory implements IConnectionFactory {
             queryParams[TestHooksParamName] = "1";
         }
 
+        if (config.EndpointId) {
+            queryParams[EndpointIdParamName] = config.EndpointId;
+        }
+
         const headers: IStringDictionary<string> = {};
         headers[authInfo.HeaderName] = authInfo.Token;
         headers[ConnectionIdHeader] = connectionId;
@@ -54,8 +59,8 @@ export class SpeechConnectionFactory implements IConnectionFactory {
         return new WebsocketConnection(endpoint, queryParams, headers, new WebsocketMessageFormatter(), connectionId);
     }
 
-    private get Host(): string {
-        return Storage.Local.GetOrAdd("Host", "wss://speech.platform.bing.com");
+    private Host(host: string): string {
+        return Storage.Local.GetOrAdd("Host", host);
     }
 
     private get InteractiveRelativeUri(): string {
