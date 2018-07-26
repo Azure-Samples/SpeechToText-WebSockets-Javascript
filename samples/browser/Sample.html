@@ -18,15 +18,15 @@
                     <h2 style="font-weight:500;">Microsoft Cognitive Services</h2>
                 </td>
             </tr>
-            <tr>
+            <!--<tr>
                 <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
                 <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
-            </tr>
+            </tr>-->
             <tr>
                 <td align="right">Language:</td>
                 <td align="left">
                     <select id="languageOptions">
-                        <option value="ar-EG">Arabic - EG</option>
+                        <!--<option value="ar-EG">Arabic - EG</option>
                         <option value="ca-ES">Catalan - ES</option>
                         <option value="da-DK">Danish - DK</option>
                         <option value="da-DK">Danish - DK</option>
@@ -36,9 +36,9 @@
                         <option value="en-GB">English - GB</option>
                         <option value="en-IN">English - IN</option>
                         <option value="en-NZ">English - NZ</option>
-                        <option value="zh-CN">Chinese - CN</option>
+                        <option value="zh-CN">Chinese - CN</option>-->
                         <option value="en-US" selected="selected">English - US</option>
-                        <option value="es-ES">Spanish - ES</option>
+                        <!--<option value="es-ES">Spanish - ES</option>
                         <option value="es-MX">Spanish - MX</option>
                         <option value="fi-FI">Finnish - FI</option>
                         <option value="fr-CA">French - CA</option>
@@ -56,7 +56,7 @@
                         <option value="sv-SE">Swedish - SE</option>
                         <option value="zh-CN">Chinese - CN</option>
                         <option value="zh-HK">Chinese - HK</option>
-                        <option value="zh-TW">Chinese - TW</option>
+                        <option value="zh-TW">Chinese - TW</option>-->
                     </select>
                 </td>
             </tr>
@@ -132,6 +132,14 @@
             if (!!window.SDK) {
                 document.getElementById('content').style.display = 'block';
                 document.getElementById('warning').style.display = 'none';
+
+                window.SDK.Storage.SetLocalStorage(new window.SDK.LocalStorage());
+                window.SDK.Storage.SetSessionStorage(new window.SDK.SessionStorage());
+                window.SDK.Storage.Local.GetOrAdd("Host", "wss://speech.platform.bing.com");
+                window.SDK.Storage.Local.GetOrAdd("InteractiveRelativeUri", "/recognize/onpremise/interactive/v1");
+                window.SDK.Storage.Local.GetOrAdd("ConversationRelativeUri", "/recognize/onpremise/conversation/v1");
+                window.SDK.Storage.Local.GetOrAdd("DictationRelativeUri", "/recognize/onpremise/dictation/v1");
+
                 onComplete(window.SDK);
             }
         }
@@ -279,7 +287,7 @@
             phraseDiv = document.getElementById("phraseDiv");
             hypothesisDiv = document.getElementById("hypothesisDiv");
             statusDiv = document.getElementById("statusDiv");
-            key = document.getElementById("key");
+            // key = document.getElementById("key");
             languageOptions = document.getElementById("languageOptions");
             formatOptions = document.getElementById("formatOptions");
             inputSource = document.getElementById("inputSource");
@@ -291,15 +299,14 @@
             recognitionMode.addEventListener("change", Setup);
 
             startBtn.addEventListener("click", function () {
-                if (key.value == "" || key.value == "YOUR_BING_SPEECH_API_KEY") {
+                /*if (key.value == "" || key.value == "YOUR_BING_SPEECH_API_KEY") {
                     alert("Please enter your Bing Speech subscription key!");
                     return;
-                }
+                }*/
                 if (inputSource.value === "File") {
                     filePicker.click();
                 } else {
-                    if (!recognizer || previousSubscriptionKey != key.value) {
-                        previousSubscriptionKey = key.value;
+                    if (!recognizer) {
                         Setup();
                     }
 
@@ -311,7 +318,7 @@
                 }                
             });
 
-            key.addEventListener("focus", function () {
+            /*key.addEventListener("focus", function () {
                if (key.value == "YOUR_BING_SPEECH_API_KEY") {
                    key.value = "";
                }
@@ -321,7 +328,7 @@
                if (key.value == "") {
                    key.value = "YOUR_BING_SPEECH_API_KEY";
                }
-            });
+            });*/
 
             filePicker.addEventListener("change", function () {
                 Setup();
@@ -349,7 +356,7 @@
             if (recognizer != null) {
                 RecognizerStop(SDK, recognizer);
             }
-            recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value);
+            recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], "xyz");
         }
 
         function UpdateStatus(status) {
@@ -375,6 +382,7 @@
         function UpdateRecognizedPhrase(json) {
             hypothesisDiv.innerHTML = "";
             phraseDiv.innerHTML += json + "\n";
+            phraseDiv.scrollTop = phraseDiv.scrollHeight;
         }
 
         function OnComplete() {
