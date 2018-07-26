@@ -19,14 +19,14 @@
                 </td>
             </tr>
             <tr>
-                <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
-                <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
+                <td align="right">Your on-premisee base uri:</td>
+                <td align="left"><input id="baseUri" type="text" size="40" value="YOUR_ON_PREMISE_BASE_URI"></td>
             </tr>
             <tr>
                 <td align="right">Language:</td>
                 <td align="left">
                     <select id="languageOptions">
-                        <option value="ar-EG">Arabic - EG</option>
+                        <!--<option value="ar-EG">Arabic - EG</option>
                         <option value="ca-ES">Catalan - ES</option>
                         <option value="da-DK">Danish - DK</option>
                         <option value="da-DK">Danish - DK</option>
@@ -36,9 +36,9 @@
                         <option value="en-GB">English - GB</option>
                         <option value="en-IN">English - IN</option>
                         <option value="en-NZ">English - NZ</option>
-                        <option value="zh-CN">Chinese - CN</option>
+                        <option value="zh-CN">Chinese - CN</option>-->
                         <option value="en-US" selected="selected">English - US</option>
-                        <option value="es-ES">Spanish - ES</option>
+                        <!--<option value="es-ES">Spanish - ES</option>
                         <option value="es-MX">Spanish - MX</option>
                         <option value="fi-FI">Finnish - FI</option>
                         <option value="fr-CA">French - CA</option>
@@ -56,7 +56,7 @@
                         <option value="sv-SE">Swedish - SE</option>
                         <option value="zh-CN">Chinese - CN</option>
                         <option value="zh-HK">Chinese - HK</option>
-                        <option value="zh-TW">Chinese - TW</option>
+                        <option value="zh-TW">Chinese - TW</option>-->
                     </select>
                 </td>
             </tr>
@@ -132,12 +132,19 @@
             if (!!window.SDK) {
                 document.getElementById('content').style.display = 'block';
                 document.getElementById('warning').style.display = 'none';
+
+                window.SDK.Storage.SetLocalStorage(new window.SDK.LocalStorage());
+                window.SDK.Storage.Local.GetOrAdd("Host", "");
+                window.SDK.Storage.Local.GetOrAdd("InteractiveRelativeUri", "/recognition/interactive/v1"); 
+                window.SDK.Storage.Local.GetOrAdd("ConversationRelativeUri", "/recognition/dictation/v1");
+                window.SDK.Storage.Local.GetOrAdd("DictationRelativeUri", "/recognition/conversation/v1"); 
+
                 onComplete(window.SDK);
             }
         }
         
         // Setup the recognizer
-        function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
+        function RecognizerSetup(SDK, recognitionMode, language, format) {
             
             switch (recognitionMode) {
                 case "Interactive" :
@@ -166,30 +173,7 @@
             var useTokenAuth = false;
             
             var authentication = function() {
-                if (!useTokenAuth)
-                    return new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
-
-                var callback = function() {
-                    var tokenDeferral = new SDK.Deferred();
-                    try {
-                        var xhr = new(XMLHttpRequest || ActiveXObject)('MSXML2.XMLHTTP.3.0');
-                        xhr.open('GET', '/token', 1);
-                        xhr.onload = function () {
-                            if (xhr.status === 200)  {
-                                tokenDeferral.Resolve(xhr.responseText);
-                            } else {
-                                tokenDeferral.Reject('Issue token request failed.');
-                            }
-                        };
-                        xhr.send();
-                    } catch (e) {
-                        window.console && console.log(e);
-                        tokenDeferral.Reject(e.message);
-                    }
-                    return tokenDeferral.Promise();
-                }
-
-                return new SDK.CognitiveTokenAuthentication(callback, callback);
+                return new SDK.CognitiveSubscriptionKeyAuthentication("xyz");
             }();
             
             var files = document.getElementById('filePicker').files;
@@ -267,10 +251,10 @@
     <!-- Browser Hooks -->
     <script>
         var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv;
-        var key, languageOptions, formatOptions, recognitionMode, inputSource, filePicker;
+        var baseUri, languageOptions, formatOptions, recognitionMode, inputSource, filePicker;
         var SDK;
         var recognizer;
-        var previousSubscriptionKey;
+        var previousBaseUri;
 
         document.addEventListener("DOMContentLoaded", function () {
             createBtn = document.getElementById("createBtn");
@@ -279,7 +263,6 @@
             phraseDiv = document.getElementById("phraseDiv");
             hypothesisDiv = document.getElementById("hypothesisDiv");
             statusDiv = document.getElementById("statusDiv");
-            key = document.getElementById("key");
             languageOptions = document.getElementById("languageOptions");
             formatOptions = document.getElementById("formatOptions");
             inputSource = document.getElementById("inputSource");
@@ -291,15 +274,11 @@
             recognitionMode.addEventListener("change", Setup);
 
             startBtn.addEventListener("click", function () {
-                if (key.value == "" || key.value == "YOUR_BING_SPEECH_API_KEY") {
-                    alert("Please enter your Bing Speech subscription key!");
-                    return;
-                }
                 if (inputSource.value === "File") {
                     filePicker.click();
                 } else {
-                    if (!recognizer || previousSubscriptionKey != key.value) {
-                        previousSubscriptionKey = key.value;
+                    if (!recognizer || previousBaseUri != baseUri.value) {
+                        previousBaseUri = baseUri.value;
                         Setup();
                     }
 
@@ -311,16 +290,8 @@
                 }                
             });
 
-            key.addEventListener("focus", function () {
-               if (key.value == "YOUR_BING_SPEECH_API_KEY") {
-                   key.value = "";
-               }
-            });
-
-            key.addEventListener("focusout", function () {
-               if (key.value == "") {
-                   key.value = "YOUR_BING_SPEECH_API_KEY";
-               }
+            baseUri.addEventListener("focusout", function () {
+                window.SDK.Storage.Local.Set("Host", baseUri.value);
             });
 
             filePicker.addEventListener("change", function () {
@@ -341,6 +312,7 @@
 
             Initialize(function (speechSdk) {
                 SDK = speechSdk;
+                baseUri.value = window.SDK.Storage.Local.GetOrAdd("Host", "");
                 startBtn.disabled = false;
             });
         });
@@ -349,7 +321,7 @@
             if (recognizer != null) {
                 RecognizerStop(SDK, recognizer);
             }
-            recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value);
+            recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value]);
         }
 
         function UpdateStatus(status) {
@@ -375,6 +347,7 @@
         function UpdateRecognizedPhrase(json) {
             hypothesisDiv.innerHTML = "";
             phraseDiv.innerHTML += json + "\n";
+            phraseDiv.scrollTop = phraseDiv.scrollHeight;
         }
 
         function OnComplete() {
