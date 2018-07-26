@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/sdk/speech.browser/Exports.ts"],"names":[],"mappings":";;;;;AACA,kCAA6B;AAC7B,+CAA0C","file":"Exports.js","sourcesContent":["\r\nexport * from \"./Recognizer\";\r\nexport * from \"./SpeechConnectionFactory\";\r\n"]}
