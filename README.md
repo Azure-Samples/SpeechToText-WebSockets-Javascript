@@ -7,7 +7,7 @@ We released a new Speech SDK supporting the new [Unified Speech Service](https:/
 Please check out [Microsoft Cognitive Services Speech SDK](https://aka.ms/csspeech) for documentation, links to the download pages, and the samples.
 
 
->NOTE: The content of this repository is supporting the [Bing Speech Service](https://docs.microsoft.com/en-us/azure/cognitive-services/Speech/Home), not the new [Unified Speech Service](https://azure.microsoft.com/services/cognitive-services/speech-services).
+>NOTE: The content of this repository is supporting the [Bing Speech Service](https://docs.microsoft.com/en-us/azure/cognitive-services/Speech/Home), not the new [Speech Service](https://azure.microsoft.com/services/cognitive-services/speech-services).
 
 ## Prerequisites
 
