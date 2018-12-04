@@ -33,9 +33,9 @@ gulp.task("build_ES5", function() {
 });
 
 
-gulp.task("build", ["build_ES5"]);
+gulp.task("build", gulp.series("build_ES5"));
 
-gulp.task("bundle", ["build_ES5"], function () {
+gulp.task("bundle", gulp.series("build_ES5", function () {
     return gulp.src('samples/browser/sample_app.js')
     .pipe(webpack({
         output: {filename: 'speech.sdk.bundle.js'},
@@ -49,14 +49,14 @@ gulp.task("bundle", ["build_ES5"], function () {
         }
     }))
     .pipe(gulp.dest('distrib'));
-});
+}));
 
 
 // We don't want to release anything without a successful build. So build task is dependency for these tasks.
-gulp.task('patchRelease', ['build'], function() { return BumpVersionTagAndCommit('patch'); })
-gulp.task('featureRelease', ['build'], function() { return BumpVersionTagAndCommit('minor'); })
-gulp.task('majorRelease', ['build'], function() { return BumpVersionTagAndCommit('major'); })
-gulp.task('preRelease', ['build'], function() { return BumpVersionTagAndCommit('prerelease'); })
+gulp.task('patchRelease', gulp.series('build', function() { return BumpVersionTagAndCommit('patch'); }))
+gulp.task('featureRelease', gulp.series('build', function() { return BumpVersionTagAndCommit('minor'); }))
+gulp.task('majorRelease', gulp.series('build', function() { return BumpVersionTagAndCommit('major'); }))
+gulp.task('preRelease', gulp.series('build', function() { return BumpVersionTagAndCommit('prerelease'); }))
 
 function BumpVersionTagAndCommit(versionType) {
   return gulp.src(['./package.json'])
