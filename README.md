@@ -1,5 +1,10 @@
 [![npm version](https://badge.fury.io/js/microsoft-speech-browser-sdk.svg)](https://www.npmjs.com/package/microsoft-speech-browser-sdk)
 
+# February 2019
+
+The version 1.3 of the Cognitive Services Speech SDK is available.
+The open-source Javascript version can be found [here](https://github.com/Microsoft/cognitive-services-speech-sdk-js). For other languages and platform check out the [Speech SDK home page](https://aka.ms/csspeech).
+
 # September 2018: New Microsoft Cognitive Services Speech SDK available
 
 We released a new Speech SDK supporting the new [Unified Speech Service](https://azure.microsoft.com/services/cognitive-services/speech-services). The new Speech SDK comes with support for Windows, Android, Linux, Javascript and iOS.
