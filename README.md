@@ -3,7 +3,9 @@
 # February 2019
 
 The version 1.3 of the Cognitive Services Speech SDK is available.
-The open-source Javascript version can be found [here](https://github.com/Microsoft/cognitive-services-speech-sdk-js). For other languages and platform check out the [Speech SDK home page](https://aka.ms/csspeech).
+The open-source Javascript version can be found [here](https://github.com/Microsoft/cognitive-services-speech-sdk-js). For other languages and platform check out the [Speech SDK home page](https://aka.ms/csspeech). 
+
+>NOTE: This repository is deprecated. Please use the new Cognitive Services Speech SDK!
 
 # September 2018: New Microsoft Cognitive Services Speech SDK available
 
@@ -11,8 +13,7 @@ We released a new Speech SDK supporting the new [Unified Speech Service](https:/
 
 Please check out [Microsoft Cognitive Services Speech SDK](https://aka.ms/csspeech) for documentation, links to the download pages, and the samples.
 
-
->NOTE: The content of this repository is supporting the [Bing Speech Service](https://docs.microsoft.com/en-us/azure/cognitive-services/Speech/Home), not the new [Speech Service](https://azure.microsoft.com/services/cognitive-services/speech-services).
+>NOTE: The content of this repository is supporting the [Bing Speech Service](https://docs.microsoft.com/en-us/azure/cognitive-services/Speech/Home), not the new [Speech Service](https://azure.microsoft.com/services/cognitive-services/speech-services). Bing Speech Service has been deprecated, please use the new Speech Service.
 
 ## Prerequisites
 
