@@ -1,4 +1,9 @@
 
+export enum RecognitionAPI {
+    BingSpeech,
+    CustomSpeech,
+}
+
 export enum RecognitionMode {
     Interactive,
     Conversation,
@@ -16,17 +21,23 @@ export class RecognizerConfig {
     private format: SpeechResultFormat;
     private speechConfig: SpeechConfig;
     private recognitionActivityTimeout: number;
+    private recognitionAPI: RecognitionAPI;
+    private endpointId: string;
 
     constructor(
         platformConfig: SpeechConfig,
         recognitionMode: RecognitionMode = RecognitionMode.Interactive,
         language: string = "en-us",
-        format: SpeechResultFormat = SpeechResultFormat.Simple) {
+        format: SpeechResultFormat = SpeechResultFormat.Simple,
+        recognitionAPI: RecognitionAPI,
+        endpointId: string) {
         this.speechConfig = platformConfig ? platformConfig : new SpeechConfig(new Context(null, null));
         this.recognitionMode = recognitionMode;
         this.language = language;
         this.format = format;
         this.recognitionActivityTimeout = recognitionMode === RecognitionMode.Interactive ? 8000 : 25000;
+        this.recognitionAPI = recognitionAPI,
+        this.endpointId = endpointId;
     }
 
     public get RecognitionMode(): RecognitionMode {
@@ -51,6 +62,14 @@ export class RecognizerConfig {
 
     public get IsContinuousRecognition(): boolean {
         return this.recognitionMode !== RecognitionMode.Interactive;
+    }
+
+    public get RecognitionAPI(): RecognitionAPI {
+        return this.recognitionAPI;
+    }
+
+    public get EndpointId(): string {
+        return this.endpointId;
     }
 }
 
