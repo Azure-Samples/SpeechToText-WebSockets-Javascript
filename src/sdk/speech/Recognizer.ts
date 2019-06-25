@@ -193,7 +193,7 @@ export class Recognizer {
                         case "turn.start":
                             requestSession.OnServiceTurnStartResponse(JSON.parse(connectionMessage.TextBody));
                             break;
-                        case "speech.startDetected":
+                        case "speech.startdetected":
                             requestSession.OnServiceSpeechStartDetectedResponse(JSON.parse(connectionMessage.TextBody));
                             break;
                         case "speech.hypothesis":
